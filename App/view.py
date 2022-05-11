@@ -35,9 +35,30 @@ operación solicitada
 """
 
 def printMenu():
+    """
+    Funcion encargada de hacer mostrar en la consola las opciones del menu
+    """       
     print("Bienvenido")
-    print("1- Cargar información en el catálogo")
-    print("2- ")
+    print("1- Comprar bicicletas para las estaciones con mas viajes de origen - Requerimiento 1")
+    print("2- Planear paseos turisticos por la ciudad - Requerimiento 2")
+    print("3- Reconocer los componentes fuertemente conectados - Requerimiento 3")
+    print("4- Planear una ruta rapida para el usuario - Requerimiento 4")
+    print("5- Reportar rutas en un rango de fechas para los usuarios anuales - Requerimiento 5")
+    print("6- Planear el mantenimiento preventivo de bicicletas - Requerimiento 6")
+    print("7- La estacion mas frecuentada por los visitantes - Requerimiento 7")
+    print("8- Cargar información en el catálogo")
+
+
+
+"""
+ - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว -
+
+        Funciones para mostrar en la consola los datos solicitados
+
+ - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว -
+"""
+
+
 
 catalog = None
 
@@ -47,11 +68,38 @@ Menu principal
 while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
+    
+    # Condicional para seleccionar la opcion 1 (Comprar bicicletas para las estaciones con mas viajes de origen)
     if int(inputs[0]) == 1:
-        print("Cargando información de los archivos ....")
+        pass
 
+    # Condicional para seleccionar la opcion 2 (Planear paseos turisticos por la ciudad)
     elif int(inputs[0]) == 2:
         pass
+
+    # Condicional para seleccionar la opcion 3 (Reconocer los componentes fuertemente conectados)
+    elif int(inputs[0]) == 3:
+        pass
+    
+    # Condicional para seleccionar la opcion 4 (Planear una ruta rapida para el usuario) 
+    elif int(inputs[0]) == 4:
+        pass
+
+    # Condicional para seleccionar la opcion 5 (Reportar rutas en un rango de fechas para los usuarios anuales)
+    elif int(inputs[0]) == 5:
+        pass
+
+    # Condicional para seleccionar la opcion 6 (Planear el mantenimiento preventivo de bicicletas)
+    elif int(inputs[0]) == 6:
+        pass
+
+    # Condicional para seleccionar la opcion 7 (La estacion mas frecuentada por los visitantes)
+    elif int(inputs[0]) == 7:
+        pass
+
+    # Condicional para seleccionar la opcion 8 (Cargar información en el catálogo)
+    elif int(inputs[0]) == 8:
+        print("Cargando información de los archivos ....")
 
     else:
         sys.exit(0)
