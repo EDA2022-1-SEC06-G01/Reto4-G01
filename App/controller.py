@@ -23,7 +23,17 @@
 import config as cf
 import model
 import csv
+import timeit
 
+
+def init():
+    """
+    Llama la funcion de inicializacion  del modelo.
+    """
+    # analyzer es utilizado para interactuar con el modelo
+    catalog = model.newCatalog()
+    return catalog
+    
 
 """
 El controlador se encarga de mediar entre la vista y el modelo.

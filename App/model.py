@@ -26,10 +26,14 @@
 
 
 import config as cf
+from DISClib.ADT import graph as gr
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
+from DISClib.Algorithms.Graphs import dfs
+from DISClib.Algorithms.Graphs import bfs
+from DISClib.Utils import error as error
 assert cf
 
 """
@@ -38,6 +42,28 @@ los mismos.
 """
 
 # Construccion de modelos
+
+def newCatalog():
+    """ Inicializa el analizador
+   stops: Tabla de hash para guardar los vertices del grafo
+   connections: Grafo para representar las rutas entre estaciones
+   components: Almacena la informacion de los componentes conectados
+   paths: Estructura que almancena los caminos de costo minimo desde un
+           vertice determinado a todos los otros vértices del grafo
+    """
+    try:
+        catalog = {
+            'main_graph': None
+        }
+
+        catalog['main_graph'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=True,
+                                              size=14000,
+                                              comparefunction=compareStopIds)
+
+        return catalog
+    except Exception as exp:
+        error.reraise(exp, 'model:newCatalog')
 
 # Funciones para agregar informacion al catalogo
 
@@ -48,3 +74,16 @@ los mismos.
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 # Funciones de ordenamiento
+
+
+def compareStopIds(stop, keyvaluestop):
+    """
+    Compara dos estaciones
+    """
+    stopcode = keyvaluestop['key']
+    if (stop == stopcode):
+        return 0
+    elif (stop > stopcode):
+        return 1
+    else:
+        return -1

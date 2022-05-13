@@ -100,6 +100,7 @@ while True:
     # Condicional para seleccionar la opcion 8 (Cargar información en el catálogo)
     elif int(inputs[0]) == 8:
         print("Cargando información de los archivos ....")
+        catalog = controller.init()
 
     else:
         sys.exit(0)
