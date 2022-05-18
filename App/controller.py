@@ -33,6 +33,32 @@ def init():
     # analyzer es utilizado para interactuar con el modelo
     catalog = model.newCatalog()
     return catalog
+
+
+def loadRoutes(catalog, routesFile):
+    """
+    Carga los datos de los archivos CSV en el modelo.
+    Se crea un arco entre cada par de estaciones que
+    pertenecen al mismo servicio y van en el mismo sentido.
+    addRouteConnection crea conexiones entre diferentes rutas
+    servidas en una misma estación.
+    """
+    routesFile = cf.data_dir + routesFile
+    input_file = csv.DictReader(open(routesFile, encoding="utf-8"),
+                                delimiter=",")
+
+    for ruta in input_file:
+        if ruta["Trip Id"] == "" or ruta["Trip  Duration"] == "" or ruta["Start Station Id"] == "" or ruta["Start Time"] == "" or ruta["Start Station Name"] == "" or ruta["End Station Id"] == "" or ruta["End Time"] == "" or ruta["End Station Name"] == "" or ruta["Bike Id"] == "" or ruta["User Type"] == "":
+            pass
+        else:
+            model.aniadir_nueva_ruta(catalog, ruta)
+    model.aniadir_conexiones(catalog)
+
+    model.grafo_scc(catalog)
+
+    
+
+    return catalog
     
 
 """
