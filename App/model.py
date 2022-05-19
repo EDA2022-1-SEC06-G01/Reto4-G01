@@ -124,9 +124,9 @@ def aniadir_conexiones(catalog):
         arcos = valor.arcos
         nombre_estacionesSalida = mp.keySet(arcos)
         for estacionSalida in lt.iterator(nombre_estacionesSalida):
-            peso = me.getValue(mp.get(arcos, estacionSalida))
+            lst_peso = me.getValue(mp.get(arcos, estacionSalida))
             # corregir aca
-            gr.addEdge(grafo, estacion, estacionSalida, peso / valor.estacion_salida)
+            gr.addEdge(grafo, estacion, estacionSalida, lt.getElement(lst_peso, 2) / lt.getElement(lst_peso, 1))
 
 
 def grafo_scc(catalog):
@@ -206,21 +206,31 @@ class Estacion:
     def aniadir_llegada(self) -> None:
         self.estacion_llegada += 1
     
-    def aniadir_salida(self, estacion_salida, peso):
-        peso = float(peso)
+    def aniadir_salida(self, estacion_salida, peso_de_estacion):
+        peso_de_estacion = float(peso_de_estacion)
         self.estacion_salida += 1
         mapa = self.arcos
 
         existe_estacion = mp.contains(mapa, estacion_salida)
 
         if existe_estacion:
-            sumaPeso = mp.get(mapa, estacion_salida)
-            valor_sumaPeso = me.getValue(sumaPeso)
-            me.setValue(sumaPeso, valor_sumaPeso + peso)
+            peso = mp.get(mapa, estacion_salida)
+            lst_peso = me.getValue(peso)
+            cantidad_elementos = lt.getElement(lst_peso, 1)
+            peso = lt.getElement(lst_peso, 2)
+
+            lt.changeInfo(lst_peso, 1, cantidad_elementos + 1)
+            lt.changeInfo(lst_peso, 2, peso + peso_de_estacion)
+
         else:
-            mp.put(mapa, estacion_salida, peso)
+            lst = lt.newList(datastructure="ARRAY_LIST")
+            lt.addLast(lst, 1)
+            lt.addLast(lst, peso_de_estacion)
+            mp.put(mapa, estacion_salida, lst)
 # cambiar sumatroria de pesos por una lista con los elementos que vaya encontrando
 
 class Bicicleta:
     def __init__(self) -> None:
         pass
+
+# los que llegan asi mismo y los que no tienen duracion (o los que tienen duracion 0)

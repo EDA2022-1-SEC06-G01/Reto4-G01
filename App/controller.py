@@ -54,10 +54,8 @@ def loadRoutes(catalog, routesFile):
             model.aniadir_nueva_ruta(catalog, ruta)
     model.aniadir_conexiones(catalog)
 
-    model.grafo_scc(catalog)
-
+    #model.grafo_scc(catalog)
     
-
     return catalog
     
 

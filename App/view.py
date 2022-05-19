@@ -101,6 +101,12 @@ while True:
     elif int(inputs[0]) == 8:
         print("Cargando información de los archivos ....")
         catalog = controller.init()
+        catalog = controller.loadRoutes(catalog, "Bikeshare-ridership-2021-utf8-large.csv")
+        from DISClib.ADT import graph as gr
+        grafo = catalog["grafo"]
+        print(f"Num_Vertices: {gr.numVertices(grafo)}")
+        print(f"Num_Edges: {gr.numEdges(grafo)}")
+        print(f"resultado: {gr.getEdge(grafo, 'Nassau St / Bellevue Ave', 'Adelaide St W / Strachan Ave')}")
 
     else:
         sys.exit(0)
