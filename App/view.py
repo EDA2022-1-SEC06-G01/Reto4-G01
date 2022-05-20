@@ -104,6 +104,7 @@ while True:
 
     # Condicional para seleccionar la opcion 8 (Cargar información en el catálogo)
     elif int(inputs[0]) == 8:
+        # avance carga datos
         import time
         print("Cargando información de los archivos ....")
         catalog = controller.init()

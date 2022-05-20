@@ -137,17 +137,17 @@ def grafo_scc(catalog):
     catalog["grafo_scc"] = scc.KosarajuSCC(grafo)
     scc_ = catalog["grafo_scc"]
 
-    print(scc.connectedComponents(scc_))
-    print("propos")
-    value = scc.sccCount(grafo, scc_, "Nassau St / Bellevue Ave")['idscc']
-    print(value)
-    print()
-    print()
-    print(mp.keySet(value))
-    print()
-    print()
-    print()
-    print(mp.valueSet(value))
+    # print(scc.connectedComponents(scc_))
+    # print("propos")
+    # value = scc.sccCount(grafo, scc_, "Nassau St / Bellevue Ave")['idscc']
+    # print(value)
+    # print()
+    # print()
+    # print(mp.keySet(value))
+    # print()
+    # print()
+    # print()
+    # print(mp.valueSet(value))
 
 
 def max_scc(catalog):
