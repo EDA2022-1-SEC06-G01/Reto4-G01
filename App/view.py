@@ -83,7 +83,12 @@ while True:
     
     # Condicional para seleccionar la opcion 4 (Planear una ruta rapida para el usuario) 
     elif int(inputs[0]) == 4:
-        pass
+        estacion_origen = input("Desde donde deseas que salga el usuario: ")
+        estacion_destino = input("A donde desea llegar el usuario: ")
+
+        controller.grafo_dijsktra(catalog, estacion_origen)
+        tiene = controller.hasPath(catalog, estacion_destino)
+        print(tiene)
 
     # Condicional para seleccionar la opcion 5 (Reportar rutas en un rango de fechas para los usuarios anuales)
     elif int(inputs[0]) == 5:
@@ -99,14 +104,15 @@ while True:
 
     # Condicional para seleccionar la opcion 8 (Cargar información en el catálogo)
     elif int(inputs[0]) == 8:
+        import time
         print("Cargando información de los archivos ....")
         catalog = controller.init()
-        catalog = controller.loadRoutes(catalog, "Bikeshare-ridership-2021-utf8-large.csv")
-        from DISClib.ADT import graph as gr
-        grafo = catalog["grafo"]
-        print(f"Num_Vertices: {gr.numVertices(grafo)}")
-        print(f"Num_Edges: {gr.numEdges(grafo)}")
-        print(f"resultado: {gr.getEdge(grafo, 'Nassau St / Bellevue Ave', 'Adelaide St W / Strachan Ave')}")
+
+        start_time = time.time()
+        catalog = controller.loadRoutes(catalog, "Bikeshare-ridership-2021-utf8-small.csv")
+        print("--- %s seconds ---" % (time.time() - start_time))
+        
+
 
     else:
         sys.exit(0)

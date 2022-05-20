@@ -33,6 +33,7 @@ from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.Algorithms.Graphs import dfs
 from DISClib.Algorithms.Graphs import bfs
+from DISClib.Algorithms.Graphs import dijsktra
 from DISClib.Algorithms.Graphs import scc
 from DISClib.ADT import orderedmap as om
 from DISClib.Utils import error as error
@@ -58,7 +59,8 @@ def newCatalog():
             'grafo': None,
             'grafo_scc': None,
             'maxValue_stationInComponent': None,
-            'peso_arcos': None
+            'peso_arcos': None,
+            'grafo_dijsktra': None
         }
 
         catalog['estaciones'] = mp.newMap(numelements=14000, maptype='PROBING', loadfactor=0.5)        
@@ -102,6 +104,7 @@ def salida(grafo, mapa_estaciones, nombre_estacionSalida, id_estacionSalida, nom
         mp.put(mapa_estaciones, nombre_estacionSalida, estacion)
         gr.insertVertex(grafo, nombre_estacionSalida)
 
+
 def llegada(grafo, mapa_estaciones, nombre_estacionLlegada, id_estacionLlegada):
     contiene_llave = mp.contains(mapa_estaciones, nombre_estacionLlegada)
 
@@ -125,8 +128,8 @@ def aniadir_conexiones(catalog):
         nombre_estacionesSalida = mp.keySet(arcos)
         for estacionSalida in lt.iterator(nombre_estacionesSalida):
             lst_peso = me.getValue(mp.get(arcos, estacionSalida))
-            # corregir aca
             gr.addEdge(grafo, estacion, estacionSalida, lt.getElement(lst_peso, 2) / lt.getElement(lst_peso, 1))
+
 
 
 def grafo_scc(catalog):
@@ -159,6 +162,18 @@ def max_scc(catalog):
         else:
             pass
 
+
+def grafo_dijsktra(catalog, vertice_inicial):
+    grafo = catalog["grafo"]
+    catalog["grafo_dijsktra"] = dijsktra.Dijkstra(grafo, vertice_inicial)
+
+def hasPath(catalog, station_to_reach):
+    search = catalog["grafo_dijsktra"]
+    return dijsktra.hasPathTo(search, station_to_reach)
+
+def findPath(catalog, station_to_reach):
+    search = catalog["grafo_dijsktra"]
+    return dijsktra.pathTo(search, station_to_reach)
 
 
 
@@ -196,7 +211,6 @@ class Estacion:
     def __init__(self, nombre, id_estacion) -> None:
         self.nombre = nombre
         self.id_estacion = id_estacion
-        # corregir division para el promedio que sea solo con las de salida de ese edge
         self.estacion_salida = 0
         self.estacion_llegada = 0
         self.arcos = mp.newMap(numelements=5, maptype='PROBING', loadfactor=0.5)

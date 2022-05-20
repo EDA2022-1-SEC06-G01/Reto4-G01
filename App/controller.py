@@ -48,13 +48,15 @@ def loadRoutes(catalog, routesFile):
                                 delimiter=",")
 
     for ruta in input_file:
-        if ruta["Trip Id"] == "" or ruta["Trip  Duration"] == "" or ruta["Start Station Id"] == "" or ruta["Start Time"] == "" or ruta["Start Station Name"] == "" or ruta["End Station Id"] == "" or ruta["End Time"] == "" or ruta["End Station Name"] == "" or ruta["Bike Id"] == "" or ruta["User Type"] == "":
-            pass
-        else:
-            model.aniadir_nueva_ruta(catalog, ruta)
+        # if ruta["Trip Id"] == "" or ruta["Trip  Duration"] == "" or ruta["Start Station Id"] == "" or ruta["Start Time"] == "" or ruta["Start Station Name"] == "" or ruta["End Station Id"] == "" or ruta["End Time"] == "" or ruta["End Station Name"] == "" or ruta["Bike Id"] == "" or ruta["User Type"] == "":
+        #     pass
+        # else:
+        #     pass
+        model.aniadir_nueva_ruta(catalog, ruta)
     model.aniadir_conexiones(catalog)
 
-    #model.grafo_scc(catalog)
+    model.grafo_scc(catalog)
+    input()
     
     return catalog
     
@@ -62,6 +64,16 @@ def loadRoutes(catalog, routesFile):
 """
 El controlador se encarga de mediar entre la vista y el modelo.
 """
+
+def grafo_dijsktra(catalog, vertice_inicial):
+    return model.grafo_dijsktra(catalog, vertice_inicial)
+
+def hasPath(catalog, station_to_reach):
+    return model.hasPath(catalog, station_to_reach)
+
+def findPath(catalog, station_to_reach):
+    return model.findPath(catalog, station_to_reach)
+
 
 # Inicialización del Catálogo de libros
 
