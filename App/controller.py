@@ -20,6 +20,7 @@
  * along withthis program.  If not, see <http://www.gnu.org/licenses/>.
  """
 
+from gettext import Catalog
 import config as cf
 import model
 import csv
@@ -81,3 +82,6 @@ def findPath(catalog, station_to_reach):
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
+
+def requerimiento_1(catalog):
+    return model.estacion_mas_viajes_origen(catalog)
