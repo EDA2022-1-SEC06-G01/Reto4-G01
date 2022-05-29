@@ -186,6 +186,19 @@ def findPath(catalog, station_to_reach):
 
 # Funciones de consulta
 
+
+
+def estacion_mas_viajes_origen(catalog):
+
+    grafo = catalog['grafo']
+    num_est = gr.numVertices(grafo)
+    list_vert = gr.vertices(grafo)
+
+    #for i in range(num_est):
+    vertice = list_vert[0]
+    print(gr.degree(vertice))
+    return
+
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 # Funciones de ordenamiento

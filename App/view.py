@@ -71,7 +71,7 @@ while True:
     
     # Condicional para seleccionar la opcion 1 (Comprar bicicletas para las estaciones con mas viajes de origen)
     if int(inputs[0]) == 1:
-        pass
+        controller.requerimiento_1(catalog)
 
     # Condicional para seleccionar la opcion 2 (Planear paseos turisticos por la ciudad)
     elif int(inputs[0]) == 2:
