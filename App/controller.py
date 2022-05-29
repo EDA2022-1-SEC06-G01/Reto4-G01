@@ -48,14 +48,15 @@ def loadRoutes(catalog, routesFile):
                                 delimiter=",")
     fila_incorrecta = 0
     for ruta in input_file:
-        if ruta["Trip Id"] == "" or ruta["Trip  Duration"] == 0 or ruta["Start Station Id"] == "" or ruta["Start Time"] == "" or ruta["Start Station Name"] == "" or ruta["End Station Id"] == "" or ruta["End Time"] == "" or ruta["End Station Name"] == "" or ruta["Bike Id"] == "" or ruta["User Type"] == "":
-            fila_incorrecta += 1
+        if ruta["Bike Id"] == "" or ruta["Trip  Duration"] == 0 or ruta["Trip  Duration"] ==  "" or ruta["Trip  Duration"] == "" or ruta["Start Station Id"] == "" or ruta["End Station Id"] == "" or ruta["Start Station Name"] == ruta["End Station Name"]:
+            fila_incorrecta += 1 
+            continue
         else:
             model.aniadir_nueva_ruta(catalog, ruta)
     model.aniadir_conexiones(catalog)
     catalog["filas_incorrectas"] = fila_incorrecta
 
-    model.grafo_scc(catalog)
+    #model.grafo_scc(catalog)
     
     return catalog
     

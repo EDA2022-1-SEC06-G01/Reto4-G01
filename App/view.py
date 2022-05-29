@@ -112,6 +112,9 @@ while True:
         start_time = time.time()
         catalog = controller.loadRoutes(catalog, "Bikeshare-ridership-2021-utf8-small.csv")
         print("--- %s seconds ---" % (time.time() - start_time))
+        from DISClib.ADT import graph as gr
+        print(f"Num vertices:{gr.numVertices(catalog['grafo'])}")
+        print(f"Num edges:{gr.numEdges(catalog['grafo'])}")
         
 
 

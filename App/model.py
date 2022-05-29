@@ -81,11 +81,14 @@ def aniadir_nueva_ruta(catalog, route):
     mapa_estaciones = catalog['estaciones']
     grafo = catalog['grafo']
 
-    nombre_estacionSalida = route["Start Station Name"]
+    nombre_formateado = f"{route['Start Station Id']}-{route['Start Station Name']}"
+    nombre_formateado2 = f"{route['End Station Id'][:-2]}-{route['End Station Name']}"
+    nombre_estacionSalida = nombre_formateado
     id_estacionSalida = route["Start Station Id"]
-    nombre_estacionLlegada = route["End Station Name"]
+    nombre_estacionLlegada = nombre_formateado2
     id_estacionLlegada = route["End Station Id"]
     peso = route["Trip  Duration"]
+    
 
     salida(grafo, mapa_estaciones, nombre_estacionSalida, id_estacionSalida, nombre_estacionLlegada, peso)
 
