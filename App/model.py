@@ -202,6 +202,28 @@ def findPath(catalog, station_to_reach):
 
 # Funciones de consulta
 
+def searchPaths(catalog, initialVertex):
+    path = dfs.DepthFirstSearch(catalog['grafo'], initialVertex)
+    catalog['posibles_caminos'] = path
+    return catalog
+
+def posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
+    paths = searchPaths(catalog, initialVertex)
+    stations = mp.keySet(paths)
+    print(stations)
+    return
+
+def estacion_mas_viajes_origen(catalog):
+
+    grafo = catalog['grafo']
+    num_est = gr.numVertices(grafo)
+    list_vert = gr.vertices(grafo)
+
+    #for i in range(num_est):
+    vertice = list_vert[0]
+    print(gr.degree(vertice))
+    return
+
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 # Funciones de ordenamiento
