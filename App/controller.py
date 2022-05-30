@@ -25,6 +25,8 @@ import config as cf
 import model
 import csv
 import timeit
+from DISClib.ADT import map as mp
+
 
 
 def init():
@@ -63,19 +65,9 @@ def loadRoutes(catalog, routesFile):
             model.aniadir_nueva_ruta(catalog, ruta)
     model.aniadir_conexiones(catalog)
     catalog["filas_incorrectas"] = fila_incorrecta
-    print(fila_incorrecta)
-    print(contador)
-    print()
-    s = catalog["dict"]
-    x = catalog["dict"].keys()
-    contador = 0
-    for i in x:
-        if len(s[i]) > 1:
-            contador += 1
-            print(i)
-            print(s[i])
-    print("hoyusadefasd")
-    print(contador)
+    cat = catalog["nombreEstaciones_nombreFormateados"]
+    print(mp.contains(cat, "Princes Gate / Nunavut Dr"))
+    print(mp.get(cat, "Princes Gate / Nunavut Dr"))
 
     #model.grafo_scc(catalog)
     
