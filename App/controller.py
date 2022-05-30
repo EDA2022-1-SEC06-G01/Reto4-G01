@@ -48,14 +48,34 @@ def loadRoutes(catalog, routesFile):
     input_file = csv.DictReader(open(routesFile, encoding="utf-8"),
                                 delimiter=",")
     fila_incorrecta = 0
+    contador = 0
     for ruta in input_file:
-        if ruta["Bike Id"] == "" or ruta["Trip  Duration"] == 0 or ruta["Trip  Duration"] ==  "" or ruta["Trip  Duration"] == "" or ruta["Start Station Id"] == "" or ruta["End Station Id"] == "" or ruta["Start Station Name"] == ruta["End Station Name"]:
+        contador += 1
+        if ruta["Bike Id"] == "" \
+            or int(ruta["Trip  Duration"]) <= 0 \
+            or ruta["Trip  Duration"] == "" \
+            or ruta["Start Station Id"] == "" \
+            or ruta["End Station Id"] == "" \
+            or ruta["Start Station Name"] == ruta["End Station Name"]:
             fila_incorrecta += 1 
             continue
         else:
             model.aniadir_nueva_ruta(catalog, ruta)
     model.aniadir_conexiones(catalog)
     catalog["filas_incorrectas"] = fila_incorrecta
+    print(fila_incorrecta)
+    print(contador)
+    print()
+    s = catalog["dict"]
+    x = catalog["dict"].keys()
+    contador = 0
+    for i in x:
+        if len(s[i]) > 1:
+            contador += 1
+            print(i)
+            print(s[i])
+    print("hoyusadefasd")
+    print(contador)
 
     #model.grafo_scc(catalog)
     

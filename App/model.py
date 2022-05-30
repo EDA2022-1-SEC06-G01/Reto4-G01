@@ -25,6 +25,7 @@
  """
 
 
+from re import L
 import config as cf
 from DISClib.ADT import graph as gr
 from DISClib.ADT import list as lt
@@ -70,6 +71,9 @@ def newCatalog():
                                               size=14000,
                                               comparefunction=compareStopIds)
 
+        catalog['cont'] = 0 
+        catalog["dict"] = {}
+
                                            
 
         return catalog
@@ -81,8 +85,32 @@ def aniadir_nueva_ruta(catalog, route):
     mapa_estaciones = catalog['estaciones']
     grafo = catalog['grafo']
 
-    nombre_formateado = f"{route['Start Station Id']}-{route['Start Station Name']}"
-    nombre_formateado2 = f"{route['End Station Id'][:-2]}-{route['End Station Name']}"
+    nombre_formateado = f"{route['Start Station Id']}-{'UNKNOWN' if route['Start Station Name'] == '' else route['Start Station Name']}"
+    nombre_formateado2 = f"{route['End Station Id'][:-2]}-{'UNKNOWN' if route['End Station Name'] == '' else route['End Station Name']}"
+    try:
+        dict = catalog["dict"]
+        val = dict[route['Start Station Name']]
+        if route['Start Station Id'] not in val:
+            catalog["cont"] += 1
+            val.append(route['Start Station Id'])
+    except:
+        dict = catalog["dict"]
+        dict[route['Start Station Name']] = [route['Start Station Id']]
+
+
+    try:
+        dict = catalog["dict"]
+        val = dict[route['End Station Name']]
+        if route['End Station Id'][:-2] not in val:
+            catalog["cont"] += 1
+            val.append(route['End Station Id'][:-2])
+    except:
+        dict = catalog["dict"]
+        dict[route['End Station Name']] = [route['End Station Id'][:-2]]
+    
+
+
+
     nombre_estacionSalida = nombre_formateado
     id_estacionSalida = route["Start Station Id"]
     nombre_estacionLlegada = nombre_formateado2
@@ -185,19 +213,6 @@ def findPath(catalog, station_to_reach):
 # Funciones para creacion de datos
 
 # Funciones de consulta
-
-
-
-def estacion_mas_viajes_origen(catalog):
-
-    grafo = catalog['grafo']
-    num_est = gr.numVertices(grafo)
-    list_vert = gr.vertices(grafo)
-
-    #for i in range(num_est):
-    vertice = list_vert[0]
-    print(gr.degree(vertice))
-    return
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 
