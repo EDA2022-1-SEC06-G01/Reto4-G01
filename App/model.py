@@ -78,80 +78,6 @@ def newCatalog():
         error.reraise(exp, 'model:newCatalog')
 
 
-def aniadir_nueva_ruta(catalog, route):
-    mapa_estaciones = catalog['estaciones']
-    grafo = catalog['grafo']
-    nombreEstaciones_nombreFormateados = catalog['nombreEstaciones_nombreFormateados']
-
-    nombre_estacionSalida = route['Start Station Name']
-    id_estacionSalida = route["Start Station Id"]
-    nombreFormateado_estacionSalida = f"{id_estacionSalida}-{'UNKNOWN' if nombre_estacionSalida == '' else nombre_estacionSalida}"
-
-    nombre_estacionLlegada = route['End Station Name']
-    id_estacionLlegada = route["End Station Id"][:-2]
-    nombreFormateado_estacionLlegada = f"{id_estacionLlegada}-{'UNKNOWN' if nombre_estacionLlegada == '' else nombre_estacionLlegada}"
-    
-    peso = route["Trip  Duration"]
-    
-    aniadirNombreEstacion_estacionFormateada(nombreEstaciones_nombreFormateados, nombre_estacionSalida, nombreFormateado_estacionSalida)
-    salida(grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso)
-
-    aniadirNombreEstacion_estacionFormateada(nombreEstaciones_nombreFormateados, nombre_estacionLlegada, nombreFormateado_estacionLlegada)
-    llegada(grafo, mapa_estaciones, nombreFormateado_estacionLlegada, nombre_estacionLlegada, id_estacionLlegada)
-    
-
-def salida(grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso):
-    contiene_llave = mp.contains(mapa_estaciones, nombreFormateado_estacionSalida)
-
-    if contiene_llave:
-        estacion = me.getValue(mp.get(mapa_estaciones, nombreFormateado_estacionSalida))
-        estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso)
-    else:
-        estacion = Estacion(nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida)
-        estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso)
-        mp.put(mapa_estaciones, nombreFormateado_estacionSalida, estacion)
-        gr.insertVertex(grafo, nombreFormateado_estacionSalida)
-
-
-def llegada(grafo, mapa_estaciones, nombreFormateado_estacionLlegada, nombre_estacionLlegada, id_estacionLlegada):
-    contiene_llave = mp.contains(mapa_estaciones, nombreFormateado_estacionLlegada)
-
-    if contiene_llave:
-        estacion = me.getValue(mp.get(mapa_estaciones, nombreFormateado_estacionLlegada))
-        estacion.aniadir_llegada()
-    else:
-        estacion = Estacion(nombreFormateado_estacionLlegada, nombre_estacionLlegada, id_estacionLlegada)
-        estacion.aniadir_llegada()
-        mp.put(mapa_estaciones, nombreFormateado_estacionLlegada, estacion)
-        gr.insertVertex(grafo, nombreFormateado_estacionLlegada)
-
-
-def aniadir_conexiones(catalog):
-    mapa_estaciones = catalog['estaciones']
-    grafo = catalog['grafo']
-
-    nombre_estaciones = mp.keySet(mapa_estaciones)
-    for estacion in lt.iterator(nombre_estaciones):
-        valor = me.getValue(mp.get(mapa_estaciones, estacion))
-        arcos = valor.arcos
-        nombre_estacionesSalida = mp.keySet(arcos)
-        for estacionSalida in lt.iterator(nombre_estacionesSalida):
-            lst_peso = me.getValue(mp.get(arcos, estacionSalida))
-            gr.addEdge(grafo, estacion, estacionSalida, lt.getElement(lst_peso, 2) / lt.getElement(lst_peso, 1))
-
-
-def aniadirNombreEstacion_estacionFormateada(mapa, nombre_estacion, nombreFormateado_estacion):
-    existe = mp.contains(mapa, nombre_estacion)
-    if existe:
-        lst = me.getValue(mp.get(mapa, nombre_estacion))
-        existe = lt.isPresent(lst, nombreFormateado_estacion)
-        if not existe:
-            lt.addLast(lst, nombreFormateado_estacion)
-    else:
-        lst = lt.newList()
-        mp.put(mapa, nombre_estacion, lst)
-        lt.addLast(lst, nombreFormateado_estacion)
-
 def grafo_scc(catalog):
     grafo = catalog["grafo"]
     catalog["grafo_scc"] = scc.KosarajuSCC(grafo)
@@ -283,10 +209,105 @@ class Estacion:
             lt.addLast(lst, 1)
             lt.addLast(lst, peso_de_estacion)
             mp.put(mapa, estacion_salida, lst)
-# cambiar sumatroria de pesos por una lista con los elementos que vaya encontrando
+
+
 
 class Bicicleta:
     def __init__(self) -> None:
         pass
+
+
+
+class Viaje:
+
+    cantidad_viajes = 0
+
+    def __init__(self, catalog, route) -> None:
+        Viaje.cantidad_viajes += 1
+
+        self.id_viaje = Viaje.cantidad_viajes
+        self.nombre_estacionSalida = route['Start Station Name']
+        self.id_estacionSalida = route["Start Station Id"]
+        self.nombreFormateado_estacionSalida = self.formatear_nombre(self.id_estacionSalida, self.nombre_estacionSalida)
+
+        self.nombre_estacionLlegada = route['End Station Name']
+        self.id_estacionLlegada = route["End Station Id"].split('.')[0]
+        self.nombreFormateado_estacionLlegada = self.formatear_nombre(self.id_estacionLlegada, self.nombre_estacionLlegada)
+
+        self.peso = route["Trip  Duration"]
+
+        mapa_estaciones = catalog['estaciones']
+        nombreEstaciones_nombreFormateados = catalog['nombreEstaciones_nombreFormateados']
+        grafo = catalog['grafo']
+        self.agregar_datosViaje(grafo, mapa_estaciones, self.nombreFormateado_estacionSalida, self.nombre_estacionSalida, self.id_estacionSalida, self.nombreFormateado_estacionLlegada, self.peso, nombreEstaciones_nombreFormateados, self.nombre_estacionLlegada, self.id_estacionLlegada)
+    
+    def agregar_datosViaje(self,
+                            grafo,
+                            mapa_estaciones,
+                            nombreFormateado_estacionSalida,
+                            nombre_estacionSalida, id_estacionSalida,
+                            nombreFormateado_estacionLlegada,
+                            peso,
+                            nombreEstaciones_nombreFormateados,
+                            nombre_estacionLlegada,
+                            id_estacionLlegada):
+
+        self.salida(grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso, nombreEstaciones_nombreFormateados)
+        self.llegada(grafo, mapa_estaciones, nombreFormateado_estacionLlegada, nombre_estacionLlegada, id_estacionLlegada, nombreEstaciones_nombreFormateados)
+    
+    def formatear_nombre(self, id, nombre) -> str:
+        return f"{id}-{'UNKNOWN' if nombre == '' else nombre}"
+
+    def salida(self, grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso, nombreEstaciones_nombreFormateados):
+        self.aniadirNombreEstacion_estacionFormateada(nombreEstaciones_nombreFormateados, nombre_estacionSalida, nombreFormateado_estacionLlegada)
+        contiene_llave = mp.contains(mapa_estaciones, nombreFormateado_estacionSalida)
+
+        if contiene_llave:
+            estacion = me.getValue(mp.get(mapa_estaciones, nombreFormateado_estacionSalida))
+            estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso)
+        else:
+            estacion = Estacion(nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida)
+            estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso)
+            mp.put(mapa_estaciones, nombreFormateado_estacionSalida, estacion)
+            gr.insertVertex(grafo, nombreFormateado_estacionSalida)
+
+
+    def llegada(self, grafo, mapa_estaciones, nombreFormateado_estacionLlegada, nombre_estacionLlegada, id_estacionLlegada, nombreEstaciones_nombreFormateados):
+        self.aniadirNombreEstacion_estacionFormateada(nombreEstaciones_nombreFormateados, nombre_estacionLlegada, nombreFormateado_estacionLlegada)
+        contiene_llave = mp.contains(mapa_estaciones, nombreFormateado_estacionLlegada)
+
+        if contiene_llave:
+            estacion = me.getValue(mp.get(mapa_estaciones, nombreFormateado_estacionLlegada))
+            estacion.aniadir_llegada()
+        else:
+            estacion = Estacion(nombreFormateado_estacionLlegada, nombre_estacionLlegada, id_estacionLlegada)
+            estacion.aniadir_llegada()
+            mp.put(mapa_estaciones, nombreFormateado_estacionLlegada, estacion)
+            gr.insertVertex(grafo, nombreFormateado_estacionLlegada)
+        
+    def aniadirNombreEstacion_estacionFormateada(self, mapa, nombre_estacion, nombreFormateado_estacion):
+        existe = mp.contains(mapa, nombre_estacion)
+        if existe:
+            lst = me.getValue(mp.get(mapa, nombre_estacion))
+            existe = lt.isPresent(lst, nombreFormateado_estacion)
+            if not existe:
+                lt.addLast(lst, nombreFormateado_estacion)
+        else:
+            lst = lt.newList()
+            mp.put(mapa, nombre_estacion, lst)
+            lt.addLast(lst, nombreFormateado_estacion)
+    
+    def aniadir_conexiones(catalog):
+        mapa_estaciones = catalog['estaciones']
+        grafo = catalog['grafo']
+
+        nombre_estaciones = mp.keySet(mapa_estaciones)
+        for estacion in lt.iterator(nombre_estaciones):
+            valor = me.getValue(mp.get(mapa_estaciones, estacion))
+            arcos = valor.arcos
+            nombre_estacionesSalida = mp.keySet(arcos)
+            for estacionSalida in lt.iterator(nombre_estacionesSalida):
+                lst_peso = me.getValue(mp.get(arcos, estacionSalida))
+                gr.addEdge(grafo, estacion, estacionSalida, lt.getElement(lst_peso, 2) / lt.getElement(lst_peso, 1))
 
 # los que llegan asi mismo y los que no tienen duracion (o los que tienen duracion 0)

@@ -62,8 +62,8 @@ def loadRoutes(catalog, routesFile):
             fila_incorrecta += 1 
             continue
         else:
-            model.aniadir_nueva_ruta(catalog, ruta)
-    model.aniadir_conexiones(catalog)
+            model.Viaje(catalog, ruta)
+    model.Viaje.aniadir_conexiones(catalog)
     catalog["filas_incorrectas"] = fila_incorrecta
     cat = catalog["nombreEstaciones_nombreFormateados"]
     print(mp.contains(cat, "Princes Gate / Nunavut Dr"))
