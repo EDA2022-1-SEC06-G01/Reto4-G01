@@ -86,3 +86,6 @@ def findPath(catalog, station_to_reach):
 
 def requerimiento_1(catalog):
     return model.estacion_mas_viajes_origen(catalog)
+
+def requerimiento_2(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
+    return model.posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations)

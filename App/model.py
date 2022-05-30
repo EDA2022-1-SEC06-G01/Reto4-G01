@@ -186,7 +186,16 @@ def findPath(catalog, station_to_reach):
 
 # Funciones de consulta
 
+def searchPaths(catalog, initialVertex):
+    path = dfs.DepthFirstSearch(catalog['grafo'], initialVertex)
+    catalog['posibles_caminos'] = path
+    return catalog
 
+def posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
+    paths = searchPaths(catalog, initialVertex)
+    stations = mp.keySet(paths)
+    print(stations)
+    return
 
 def estacion_mas_viajes_origen(catalog):
 

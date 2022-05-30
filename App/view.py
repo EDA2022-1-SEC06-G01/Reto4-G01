@@ -75,7 +75,11 @@ while True:
 
     # Condicional para seleccionar la opcion 2 (Planear paseos turisticos por la ciudad)
     elif int(inputs[0]) == 2:
-        pass
+        estacion_origen = input("Ingrese el nombre de la estacion de la cual quiere partir: ")
+        maxDuration = int(input("Ingrese cual es el maximo de tiempo del recorrido: "))
+        numMinStopsStations = int(input("Ingrese la cantidad de estaciones que quiere visitar: "))
+        maxStations = int(input("Ingrese el maximo de paradas que quiere hacer: "))
+        controller.requerimiento_2(catalog, estacion_origen, maxDuration, numMinStopsStations, maxStations)
 
     # Condicional para seleccionar la opcion 3 (Reconocer los componentes fuertemente conectados)
     elif int(inputs[0]) == 3:
