@@ -26,7 +26,17 @@ import model
 import csv
 import timeit
 from DISClib.ADT import map as mp
+import datetime
 
+from DISClib.ADT import orderedmap as om
+from DISClib.ADT import list as lt
+from DISClib.Algorithms.Sorting import shellsort as sa
+from DISClib.ADT import graph as gr
+
+
+
+import sys
+sys.setrecursionlimit(10000000)
 
 
 def init():
@@ -62,12 +72,19 @@ def loadRoutes(catalog, routesFile):
             fila_incorrecta += 1 
             continue
         else:
+            ruta['Start Time'] = datetime.datetime.strptime(ruta['Start Time'], '%m/%d/%Y %H:%M')
+            ruta['End Time'] = datetime.datetime.strptime(ruta['End Time'], '%m/%d/%Y %H:%M')
             model.Viaje(catalog, ruta)
     model.Viaje.aniadir_conexiones(catalog)
     catalog["filas_incorrectas"] = fila_incorrecta
-    cat = catalog["nombreEstaciones_nombreFormateados"]
-    print(mp.contains(cat, "Princes Gate / Nunavut Dr"))
-    print(mp.get(cat, "Princes Gate / Nunavut Dr"))
+    cat = catalog["nombreEstaciones_nombreFormateados"] 
+    print()
+    print(gr.getEdge(catalog["grafo"], "7543-Nassau St / Bellevue Ave", "7473-Adelaide St W / Strachan Ave"))
+
+    print()
+
+    sa.sort(model.Estacion.top_estacionesSalida, model.cmpGeneral)
+    print(lt.getElement(model.Estacion.top_estacionesSalida, 1))
 
     #model.grafo_scc(catalog)
     

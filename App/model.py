@@ -40,6 +40,13 @@ from DISClib.ADT import orderedmap as om
 from DISClib.Utils import error as error
 assert cf
 
+
+
+import sys
+sys.setrecursionlimit(10000000)
+
+
+
 """
 Se define la estructura de un catálogo de videos. El catálogo tendrá dos listas, una para los videos, otra para las categorias de
 los mismos.
@@ -167,20 +174,41 @@ def compareStopIds(stop, keyvaluestop):
     else:
         return -1
 
+def cmpGeneral(val1, val2):
+    val1 = lt.getElement(val1, 1)
+    val2 = lt.getElement(val2, 1)
+    return val1 > val2
 
+def compare_generalArboles(val1, val2):
+    val1 = lt.getElement(val1, 1)
+    val2 = lt.getElement(val2, 1)
+    if (val1 == val2):
+        return 0
+    elif val1 > val2:
+        return 1
+    else:
+        return -1
 
 # Modelos de los objetos 
 
 class Estacion:
 
     cantidad_estaciones = 0
+    top_estacionesSalida = lt.newList(datastructure='ARRAY_LIST')
 
     def __init__(self, nombre_formateado, nombre, id_estacion) -> None:
         self.nombre = nombre
         self.nombre_formatedo = nombre_formateado
         self.id_estacion = id_estacion
-        self.estacion_salida = 0
+        self.estacion_numSalida = lt.newList(datastructure='ARRAY_LIST')
+        
+        lt.addLast(self.estacion_numSalida, 0)
+        lt.addLast(self.estacion_numSalida, self.nombre_formatedo)
+        lt.addLast(Estacion.top_estacionesSalida, self.estacion_numSalida)
+
         self.estacion_llegada = 0
+        self.registro_hora = mp.newMap(numelements=29, maptype='PROBING', loadfactor=0.5)
+        self.registro_anio = mp.newMap(numelements=29, maptype='PROBING', loadfactor=0.5)
         self.arcos = mp.newMap(numelements=5, maptype='PROBING', loadfactor=0.5)
 
         Estacion.cantidad_estaciones += 1
@@ -188,15 +216,19 @@ class Estacion:
     def aniadir_llegada(self) -> None:
         self.estacion_llegada += 1
     
-    def aniadir_salida(self, estacion_salida, peso_de_estacion):
+    def aniadir_salida(self, nombreFormateado_estacionLlegada, peso_de_estacion, hora):
+        self.registrar_hora(hora)
         peso_de_estacion = float(peso_de_estacion)
-        self.estacion_salida += 1
+        
         mapa = self.arcos
 
-        existe_estacion = mp.contains(mapa, estacion_salida)
+        existe_estacion = mp.contains(mapa, nombreFormateado_estacionLlegada)
+
+        val = lt.getElement(self.estacion_numSalida, 1)
+        lt.changeInfo(self.estacion_numSalida, 1, val + 1)
 
         if existe_estacion:
-            peso = mp.get(mapa, estacion_salida)
+            peso = mp.get(mapa, nombreFormateado_estacionLlegada)
             lst_peso = me.getValue(peso)
             cantidad_elementos = lt.getElement(lst_peso, 1)
             peso = lt.getElement(lst_peso, 2)
@@ -208,7 +240,27 @@ class Estacion:
             lst = lt.newList(datastructure="ARRAY_LIST")
             lt.addLast(lst, 1)
             lt.addLast(lst, peso_de_estacion)
-            mp.put(mapa, estacion_salida, lst)
+            mp.put(mapa, nombreFormateado_estacionLlegada, lst)
+    
+    def registrar_hora(self, datetime):
+        mapa = self.registro_hora
+        hour = datetime.hour
+        existe = mp.contains(mapa, hour)
+        if existe:
+            val = me.getValue(mp.get(mapa, hour))
+            mp.put(mapa, hour, val + 1)
+        else:
+            mp.put(mapa, hour, 1)
+    
+    def registrar_anio(self, datetime):
+        mapa = self.registro_anio
+        anio = datetime.year
+        existe = mp.contains(mapa, anio)
+        if existe:
+            val = me.getValue(mp.get(mapa, anio))
+            mp.put(mapa, anio, val + 1)
+        else:
+            mp.put(mapa, anio, 1)
 
 
 
@@ -221,6 +273,7 @@ class Bicicleta:
 class Viaje:
 
     cantidad_viajes = 0
+    
 
     def __init__(self, catalog, route) -> None:
         Viaje.cantidad_viajes += 1
@@ -239,7 +292,8 @@ class Viaje:
         mapa_estaciones = catalog['estaciones']
         nombreEstaciones_nombreFormateados = catalog['nombreEstaciones_nombreFormateados']
         grafo = catalog['grafo']
-        self.agregar_datosViaje(grafo, mapa_estaciones, self.nombreFormateado_estacionSalida, self.nombre_estacionSalida, self.id_estacionSalida, self.nombreFormateado_estacionLlegada, self.peso, nombreEstaciones_nombreFormateados, self.nombre_estacionLlegada, self.id_estacionLlegada)
+        fecha_salida = route["Start Time"]
+        self.agregar_datosViaje(grafo, mapa_estaciones, self.nombreFormateado_estacionSalida, self.nombre_estacionSalida, self.id_estacionSalida, self.nombreFormateado_estacionLlegada, self.peso, nombreEstaciones_nombreFormateados, self.nombre_estacionLlegada, self.id_estacionLlegada, fecha_salida)
     
     def agregar_datosViaje(self,
                             grafo,
@@ -250,24 +304,25 @@ class Viaje:
                             peso,
                             nombreEstaciones_nombreFormateados,
                             nombre_estacionLlegada,
-                            id_estacionLlegada):
+                            id_estacionLlegada,
+                            hora_salida):
 
-        self.salida(grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso, nombreEstaciones_nombreFormateados)
+        self.salida(grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso, nombreEstaciones_nombreFormateados, hora_salida)
         self.llegada(grafo, mapa_estaciones, nombreFormateado_estacionLlegada, nombre_estacionLlegada, id_estacionLlegada, nombreEstaciones_nombreFormateados)
     
     def formatear_nombre(self, id, nombre) -> str:
         return f"{id}-{'UNKNOWN' if nombre == '' else nombre}"
 
-    def salida(self, grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso, nombreEstaciones_nombreFormateados):
-        self.aniadirNombreEstacion_estacionFormateada(nombreEstaciones_nombreFormateados, nombre_estacionSalida, nombreFormateado_estacionLlegada)
+    def salida(self, grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso, nombreEstaciones_nombreFormateados, hora_salida):
+        self.aniadirNombreEstacion_estacionFormateada(nombreEstaciones_nombreFormateados, nombre_estacionSalida, nombreFormateado_estacionSalida)
         contiene_llave = mp.contains(mapa_estaciones, nombreFormateado_estacionSalida)
 
         if contiene_llave:
             estacion = me.getValue(mp.get(mapa_estaciones, nombreFormateado_estacionSalida))
-            estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso)
+            estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso, hora_salida)
         else:
             estacion = Estacion(nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida)
-            estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso)
+            estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso, hora_salida)
             mp.put(mapa_estaciones, nombreFormateado_estacionSalida, estacion)
             gr.insertVertex(grafo, nombreFormateado_estacionSalida)
 

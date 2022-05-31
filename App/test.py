@@ -13,43 +13,67 @@ from DISClib.ADT import orderedmap as om
 from DISClib.Utils import error as error
 assert cf
 
-catalog = {}
 
-def searchPaths(catalog, initialVertex):
-    path = dfs.DepthFirstSearch(catalog['grafo'], initialVertex)
-    catalog['posibles_caminos'] = path
-    return catalog
+mapa = om.newMap()
 
-def posibles_rutas_de_viaje(catalog, initialVertex):
-    paths = searchPaths(catalog, initialVertex)
-    print(paths)
-    input("jeje")
-    stations = mp.keySet(paths)
-    print(stations)
-    return
+lst = lt.newList()
+lt.addLast(lst, 3)
 
-def estacion_mas_viajes_origen(catalog):
+om.put(mapa, lst, "jaja")
 
-    grafo = catalog['grafo']
-    num_est = gr.numVertices(grafo)
-    list_vert = gr.vertices(grafo)
+print(mapa)
 
-    #for i in range(num_est):
-    vertice = list_vert[0]
-    print(gr.degree(vertice))
-    return
+print()
+print()
+
+lt.changeInfo(lst, 1, lt.getElement(lst, 1) + 1)
+
+print(mapa)
+
+print()
+print(lt.getElement(lst, 1))
 
 
-catalog['grafo'] = gr.newGraph()
-graph = catalog['grafo']
-gr.insertVertex(graph, 'a')
-gr.insertVertex(graph, 'b')
-gr.insertVertex(graph, 'c')
-
-gr.addEdge(graph, 'a', 'b', 1)
-gr.addEdge(graph, 'b', 'c', 1)
-gr.addEdge(graph, 'c', 'a', 1)
 
 
-print(posibles_rutas_de_viaje(catalog, 'a'))
+
+# catalog = {}
+
+# def searchPaths(catalog, initialVertex):
+#     path = dfs.DepthFirstSearch(catalog['grafo'], initialVertex)
+#     catalog['posibles_caminos'] = path
+#     return catalog
+
+# def posibles_rutas_de_viaje(catalog, initialVertex):
+#     paths = searchPaths(catalog, initialVertex)
+#     print(paths)
+#     input("jeje")
+#     stations = mp.keySet(paths)
+#     print(stations)
+#     return
+
+# def estacion_mas_viajes_origen(catalog):
+
+#     grafo = catalog['grafo']
+#     num_est = gr.numVertices(grafo)
+#     list_vert = gr.vertices(grafo)
+
+#     #for i in range(num_est):
+#     vertice = list_vert[0]
+#     print(gr.degree(vertice))
+#     return
+
+
+# catalog['grafo'] = gr.newGraph()
+# graph = catalog['grafo']
+# gr.insertVertex(graph, 'a')
+# gr.insertVertex(graph, 'b')
+# gr.insertVertex(graph, 'c')
+
+# gr.addEdge(graph, 'a', 'b', 1)
+# gr.addEdge(graph, 'b', 'c', 1)
+# gr.addEdge(graph, 'c', 'a', 1)
+
+
+# print(posibles_rutas_de_viaje(catalog, 'a'))
 
