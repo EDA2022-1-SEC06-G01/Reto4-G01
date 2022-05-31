@@ -77,16 +77,12 @@ def loadRoutes(catalog, routesFile):
             model.Viaje(catalog, ruta)
     model.Viaje.aniadir_conexiones(catalog)
     catalog["filas_incorrectas"] = fila_incorrecta
-    cat = catalog["nombreEstaciones_nombreFormateados"] 
-    print()
-    print(gr.getEdge(catalog["grafo"], "7543-Nassau St / Bellevue Ave", "7473-Adelaide St W / Strachan Ave"))
 
-    print()
 
-    sa.sort(model.Estacion.top_estacionesSalida, model.cmpGeneral)
-    print(lt.getElement(model.Estacion.top_estacionesSalida, 1))
+    # sa.sort(model.Estacion.top_estacionesSalida, model.cmpGeneral)
+    # print(lt.getElement(model.Estacion.top_estacionesSalida, 1))
 
-    #model.grafo_scc(catalog)
+    model.grafo_scc(catalog)
     
     return catalog
     

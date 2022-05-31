@@ -68,7 +68,8 @@ def newCatalog():
             'grafo_scc': None,
             'maxValue_stationInComponent': None,
             'peso_arcos': None,
-            'grafo_dijsktra': None
+            'grafo_dijsktra': None,
+            'componentesFuertementeConectados': None,
         }
 
         catalog['estaciones'] = mp.newMap(numelements=14000, maptype='PROBING', loadfactor=0.5)        
@@ -79,6 +80,7 @@ def newCatalog():
                                               directed=True,
                                               size=14000,
                                               comparefunction=compareStopIds)
+        catalog["componentesFuertementeConectados"] = lt.newList(datastructure='ARRAY_LIST')
 
         return catalog
     except Exception as exp:
@@ -87,20 +89,90 @@ def newCatalog():
 
 def grafo_scc(catalog):
     grafo = catalog["grafo"]
+    lst_componentes = catalog["componentesFuertementeConectados"]
     catalog["grafo_scc"] = scc.KosarajuSCC(grafo)
     scc_ = catalog["grafo_scc"]
 
-    # print(scc.connectedComponents(scc_))
-    # print("propos")
-    # value = scc.sccCount(grafo, scc_, "Nassau St / Bellevue Ave")['idscc']
-    # print(value)
-    # print()
-    # print()
-    # print(mp.keySet(value))
-    # print()
-    # print()
-    # print()
-    # print(mp.valueSet(value))
+    numero_de_componentesFuertementementeConectados = scc.connectedComponents(scc_)
+    value = scc.sccCount(grafo, scc_, "7543-Nassau St / Bellevue Ave")['idscc']
+
+    estacion = mp.keySet(value)
+    componente = mp.valueSet(value)
+    cantidad = lt.size(estacion)
+
+    for _ in range(1, numero_de_componentesFuertementementeConectados + 1):
+        lst = lt.newList(datastructure='ARRAY_LIST')
+        lt.addLast(lst, _)
+        lt.addLast(lst_componentes, lst)
+    
+
+    for _ in range(1, cantidad + 1):
+        estation = lt.getElement(estacion, _)
+        comp = lt.getElement(componente, _)
+        lst_actual = lt.getElement(lst_componentes, comp)
+        lt.addLast(lst_actual, estation)
+
+    lst_componentes = sa.sort(lst_componentes, cmpGeneral2)
+
+    firstThree = lt.subList(lst_componentes, 1, 3)
+    lastThree = lt.subList(lst_componentes, numero_de_componentesFuertementementeConectados - 2, 3)
+    respuesta = formatear_respuesta_req3(catalog, firstThree, lastThree)
+    return respuesta
+
+def formatear_respuesta_req3(catalog, firstThree, lastThree):
+    lst_respuesta = lt.newList(datastructure='ARRAY_LIST')
+    for _ in lt.iterator(firstThree):
+        size = lt.size(_) - 1
+        lst_respuestaActual = lt.newList(datastructure='ARRAY_LIST')
+        lt.addLast(lst_respuestaActual, lt.getElement(_, 1))
+        lt.addLast(lst_respuestaActual, size)
+        resSalidas = mayorCantidad_salidas(catalog, _)
+        resLlegadas = mayorCantidad_llegadas(catalog, _)
+        lt.addLast(lst_respuestaActual, resSalidas)
+        lt.addLast(lst_respuestaActual, resLlegadas)
+        lt.addLast(lst_respuesta, lst_respuestaActual)
+    for _ in lt.iterator(lastThree):
+        size = lt.size(_) - 1
+        lst_respuestaActual = lt.newList(datastructure='ARRAY_LIST')
+        lt.addLast(lst_respuestaActual, lt.getElement(_, 1))
+        lt.addLast(lst_respuestaActual, size)
+        resSalidas = mayorCantidad_salidas(catalog, _)
+        resLlegadas = mayorCantidad_llegadas(catalog, _)
+        lt.addLast(lst_respuestaActual, resSalidas)
+        lt.addLast(lst_respuestaActual, resLlegadas)
+        lt.addLast(lst_respuesta, lst_respuestaActual)
+    return lst_respuesta
+
+def mayorCantidad_salidas(catalog, lst):
+    mapa_estaciones = catalog['estaciones']
+    
+    max = -1
+    estacion = None
+    for element in lt.iterator(lst):
+        if isinstance(element, int):
+            continue
+        object = me.getValue(mp.get(mapa_estaciones, element))
+        salidas = object.estacion_salida
+        if salidas > max:
+            max = salidas
+            estacion = object
+    return estacion
+
+def mayorCantidad_llegadas(catalog, lst):
+    mapa_estaciones = catalog['estaciones']
+    
+    max = -1
+    estacion = None
+    for element in lt.iterator(lst):
+        if isinstance(element, int):
+            continue
+        object = me.getValue(mp.get(mapa_estaciones, element))
+        llegadas = object.estacion_llegada
+        if llegadas > max:
+            max = llegadas
+            estacion = object
+    return estacion
+
 
 
 def max_scc(catalog):
@@ -179,6 +251,16 @@ def cmpGeneral(val1, val2):
     val2 = lt.getElement(val2, 1)
     return val1 > val2
 
+def cmpGeneral2(val1, val2):
+    val_1 = lt.size(val1)
+    val_2 = lt.size(val2)
+    val_ = lt.getElement(val1, 1)
+    val2_ = lt.getElement(val2, 1)
+    if val_1 == val_2:
+        return val_ > val2_
+    else:
+        return val_1 > val_2
+
 def compare_generalArboles(val1, val2):
     val1 = lt.getElement(val1, 1)
     val2 = lt.getElement(val2, 1)
@@ -207,6 +289,7 @@ class Estacion:
         lt.addLast(Estacion.top_estacionesSalida, self.estacion_numSalida)
 
         self.estacion_llegada = 0
+        self.estacion_salida = 0
         self.registro_hora = mp.newMap(numelements=29, maptype='PROBING', loadfactor=0.5)
         self.registro_anio = mp.newMap(numelements=29, maptype='PROBING', loadfactor=0.5)
         self.arcos = mp.newMap(numelements=5, maptype='PROBING', loadfactor=0.5)
@@ -217,6 +300,7 @@ class Estacion:
         self.estacion_llegada += 1
     
     def aniadir_salida(self, nombreFormateado_estacionLlegada, peso_de_estacion, hora):
+        self.estacion_salida += 1
         self.registrar_hora(hora)
         peso_de_estacion = float(peso_de_estacion)
         
