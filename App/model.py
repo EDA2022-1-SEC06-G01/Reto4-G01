@@ -25,6 +25,7 @@
  """
 
 
+from inspect import stack
 from re import L
 import config as cf
 from DISClib.ADT import graph as gr
@@ -196,15 +197,15 @@ def max_scc(catalog):
 def grafo_dijsktra(catalog, vertice_inicial):
     grafo = catalog["grafo"]
     catalog["grafo_dijsktra"] = dijsktra.Dijkstra(grafo, vertice_inicial)
+    return catalog
 
 def hasPath(catalog, station_to_reach):
     search = catalog["grafo_dijsktra"]
     return dijsktra.hasPathTo(search, station_to_reach)
 
-def findPath(catalog, station_to_reach):
+def findPath(catalog, initial_station):
     search = catalog["grafo_dijsktra"]
-    return dijsktra.pathTo(search, station_to_reach)
-
+    return dijsktra.pathTo(search, initial_station)
 
 
 # Funciones para agregar informacion al catalogo
@@ -213,27 +214,24 @@ def findPath(catalog, station_to_reach):
 
 # Funciones de consulta
 
-def searchPaths(catalog, initialVertex):
-    path = dfs.DepthFirstSearch(catalog['grafo'], initialVertex)
-    catalog['posibles_caminos'] = path
-    return catalog
-
 def posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
-    paths = searchPaths(catalog, initialVertex)
-    stations = mp.keySet(paths)
+    dijsktra = grafo_dijsktra(catalog, initialVertex)
+    visited = dijsktra["grafo_dijsktra"]["visited"]
+    stations = mp.keySet(dijsktra["grafo_dijsktra"])
+    routes = lt.newList('ARRAY_LIST')
+    print(visited)
     print(stations)
+
+    #for i in lt.iterator(stations):
+        #path = findPath(routes, i)
+       #print(path)
+        #if path is not None:
+            #pathsize =
+    #print(dijsktra)
+    #print(paths)
+    #print(lst_vertex)
     return
 
-def estacion_mas_viajes_origen(catalog):
-
-    grafo = catalog['grafo']
-    num_est = gr.numVertices(grafo)
-    list_vert = gr.vertices(grafo)
-
-    #for i in range(num_est):
-    vertice = list_vert[0]
-    print(gr.degree(vertice))
-    return
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 

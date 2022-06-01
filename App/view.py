@@ -76,6 +76,7 @@ while True:
     # Condicional para seleccionar la opcion 2 (Planear paseos turisticos por la ciudad)
     elif int(inputs[0]) == 2:
         estacion_origen = input("Ingrese el nombre de la estacion de la cual quiere partir: ")
+        estacion_origen = "7543-Nassau St / Bellevue Ave"
         maxDuration = int(input("Ingrese cual es el maximo de tiempo del recorrido: "))
         numMinStopsStations = int(input("Ingrese la cantidad de estaciones que quiere visitar: "))
         maxStations = int(input("Ingrese el maximo de paradas que quiere hacer: "))
