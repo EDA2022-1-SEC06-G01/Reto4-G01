@@ -215,18 +215,18 @@ def findPath(catalog, initial_station):
 # Funciones de consulta
 
 def posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
+
     dijsktra = grafo_dijsktra(catalog, initialVertex)
     visited = dijsktra["grafo_dijsktra"]["visited"]
-    stations = mp.keySet(dijsktra["grafo_dijsktra"])
+    stations = mp.keySet(visited)
     routes = lt.newList('ARRAY_LIST')
     print(visited)
     print(stations)
 
-    #for i in lt.iterator(stations):
-        #path = findPath(routes, i)
-       #print(path)
-        #if path is not None:
-            #pathsize =
+    for i in lt.iterator(stations):
+        path = findPath(catalog["grafo_dijsktra"], i)
+        print(path)
+       
     #print(dijsktra)
     #print(paths)
     #print(lst_vertex)
@@ -380,6 +380,7 @@ class Viaje:
 
         mapa_estaciones = catalog['estaciones']
         nombreEstaciones_nombreFormateados = catalog['nombreEstaciones_nombreFormateados']
+        fecha_salida = route["Start Time"]
         grafo = catalog['grafo']
 
         # prueba
@@ -467,6 +468,7 @@ class Viaje:
 
         nombre_estaciones = mp.keySet(mapa_estaciones)
         for estacion in lt.iterator(nombre_estaciones):
+            
             valor = me.getValue(mp.get(mapa_estaciones, estacion))
             arcos = valor.arcos
             nombre_estacionesSalida = mp.keySet(arcos)
