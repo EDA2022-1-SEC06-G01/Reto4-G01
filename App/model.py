@@ -39,6 +39,7 @@ from DISClib.Algorithms.Graphs import scc
 from DISClib.ADT import orderedmap as om
 from DISClib.Utils import error as error
 assert cf
+import datetime
 
 
 
@@ -83,6 +84,11 @@ def newCatalog():
                                               size=14000,
                                               comparefunction=compareStopIds)
         catalog["componentesFuertementeConectados"] = lt.newList(datastructure='ARRAY_LIST')
+
+        catalog["arbolFechas_viajes_usuariosAnuales"] = om.newMap(comparefunction=compare_generalArboles)
+
+        catalog["respuesta_req3"] = None
+
 
         return catalog
     except Exception as exp:
@@ -263,9 +269,12 @@ def cmpGeneral2(val1, val2):
     else:
         return val_1 > val_2
 
+def cmpGeneral3(val1, val2):
+    val1 = lt.getElement(val1, 2)
+    val2 = lt.getElement(val2, 2)
+    return val1 > val2
+
 def compare_generalArboles(val1, val2):
-    val1 = lt.getElement(val1, 1)
-    val2 = lt.getElement(val2, 1)
     if (val1 == val2):
         return 0
     elif val1 > val2:
@@ -390,6 +399,11 @@ class Bicicleta:
             lt.addLast(lst, 1)
             lt.addLast(self.estaciones_terminado, lst)
             mp.put(self.estaciones_terminadoMapa, estacion, lst)
+    
+    def sort(self):
+        sa.sort(self.estaciones_iniciado, cmpGeneral3)
+        sa.sort(self.estaciones_terminado, cmpGeneral3)
+
 
 
 
@@ -403,6 +417,7 @@ class Viaje:
     def __init__(self, catalog, route) -> None:
         Viaje.cantidad_viajes += 1
 
+
         self.id_viaje = Viaje.cantidad_viajes
         self.nombre_estacionSalida = route['Start Station Name']
         self.id_estacionSalida = route["Start Station Id"]
@@ -413,6 +428,17 @@ class Viaje:
         self.nombreFormateado_estacionLlegada = self.formatear_nombre(self.id_estacionLlegada, self.nombre_estacionLlegada)
 
         self.peso = route["Trip  Duration"]
+
+        
+        if route["User Type"] == "Annual Member":
+
+
+
+
+
+
+
+            self.aniadirFecha_arbol(catalog, route, self.nombreFormateado_estacionSalida, self.nombreFormateado_estacionLlegada)
 
         # Datos bicicleta
         id = route["Bike Id"]
@@ -427,6 +453,7 @@ class Viaje:
             bicicleta.aniadir_estacionInicio(self.nombreFormateado_estacionSalida)
             bicicleta.aniadir_estacionFinalizacion(self.nombreFormateado_estacionLlegada)
             mp.put(idBicicleta_objetoBicicleta, id, bicicleta)
+        Bicicleta.sort
 
 
         mapa_estaciones = catalog['estaciones']
@@ -456,6 +483,8 @@ class Viaje:
     def salida(self, grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso, nombreEstaciones_nombreFormateados, hora_salida):
         self.aniadirNombreEstacion_estacionFormateada(nombreEstaciones_nombreFormateados, nombre_estacionSalida, nombreFormateado_estacionSalida)
         contiene_llave = mp.contains(mapa_estaciones, nombreFormateado_estacionSalida)
+    
+
 
 
         # CONTINUA REQUERIMIENTO 6
@@ -506,5 +535,269 @@ class Viaje:
             for estacionSalida in lt.iterator(nombre_estacionesSalida):
                 lst_peso = me.getValue(mp.get(arcos, estacionSalida))
                 gr.addEdge(grafo, estacion, estacionSalida, lt.getElement(lst_peso, 2) / lt.getElement(lst_peso, 1))
+    
+    # continuar reto 5
+    def aniadirFecha_arbol(self, catalog, route, nombreFormateado_estacionSalida, nombreFormateado_estacionLlegada):
+        arbol = catalog["arbolFechas_viajes_usuariosAnuales"]
+        fecha1 = route["Start Time"]
+        fecha2 = route["End Time"]
+        fechaParcial1 = route["Start Time Parcial"]
+        fechaParcial2 = route["End Time Parcial"]
+        
+        existe1 = om.contains(arbol, fechaParcial1)
+        existe2 = om.contains(arbol, fechaParcial2)
+
+        tiempo_viaje = int(route["Trip  Duration"])
+        dia1 = fecha1.day
+        dia2 = fecha2.day
+        hora1 = int(fecha1.hour)
+        hora2 = int(fecha2.hour)
+        
+        if dia1 == dia2:
+            if existe1:
+                lst = me.getValue(om.get(arbol, fechaParcial1))
+                mapa_estacionOrigen = lt.getElement(lst, 3)
+                mapa_estacionDestino = lt.getElement(lst, 4)
+                mapa_horasOrigen= lt.getElement(lst, 5)
+                mapa_horasDestino= lt.getElement(lst, 6)
+                
+                val_totalViajes = lt.getElement(lst, 1)
+                val_totalTiempoViaje = lt.getElement(lst, 2)
+                
+                try:
+                    veces_estacionOrigen = me.getValue(mp.get(mapa_estacionOrigen, nombreFormateado_estacionSalida))
+                    mp.put(mapa_estacionOrigen, nombreFormateado_estacionSalida, veces_estacionOrigen + 1)
+                except:
+                    mp.put(mapa_estacionOrigen, nombreFormateado_estacionSalida, 1)
+                
+                try:
+                    veces_estacionDestino = me.getValue(mp.get(mapa_estacionDestino, nombreFormateado_estacionLlegada))
+                    mp.put(mapa_estacionDestino, nombreFormateado_estacionLlegada, veces_estacionDestino + 1)
+                except:
+                    mp.put(mapa_estacionDestino, nombreFormateado_estacionLlegada, 1)
+
+                veces_horaOrigen = me.getValue(mp.get(mapa_horasOrigen, hora1))
+                veces_horaDestino = me.getValue(mp.get(mapa_horasDestino, hora2))
+
+
+                mp.put(mapa_horasOrigen, hora1, veces_horaOrigen + 1)
+                mp.put(mapa_horasDestino, hora2, veces_horaDestino + 1)
+
+                lt.changeInfo(lst, 1, val_totalViajes + 1)
+                lt.changeInfo(lst, 2, val_totalTiempoViaje + tiempo_viaje)
+                lt.changeInfo(lst, 3, mapa_estacionOrigen)
+                lt.changeInfo(lst, 4, mapa_estacionDestino)
+                lt.changeInfo(lst, 5, mapa_horasOrigen)
+                lt.changeInfo(lst, 6, mapa_horasDestino)
+                om.put(arbol, fechaParcial1, lst)
+            else:
+                lst = lt.newList(datastructure='ARRAY_LIST')
+                mapa_estacionOrigen = mp.newMap()
+                mapa_estacionDestino = mp.newMap()
+                mapa_horasOrigen= mp.newMap()
+                mapa_horasDestino= mp.newMap()
+                mp.put(mapa_estacionOrigen, nombreFormateado_estacionSalida, 1)
+                mp.put(mapa_estacionDestino, nombreFormateado_estacionLlegada, 1)
+                for _ in range(24):
+                    mp.put(mapa_horasOrigen, _, 0)
+                    mp.put(mapa_horasDestino, _, 0)
+                mp.put(mapa_horasOrigen, hora1, 1)
+                mp.put(mapa_horasDestino, hora2, 1)
+                lt.addLast(lst, 1)
+                lt.addLast(lst, tiempo_viaje)
+                lt.addLast(lst, mapa_estacionOrigen)
+                lt.addLast(lst, mapa_estacionDestino)
+                lt.addLast(lst, mapa_horasOrigen)
+                lt.addLast(lst, mapa_horasDestino)
+                om.put(arbol, fechaParcial1, lst)
+
+        else:
+            if existe1:
+                lst = me.getValue(om.get(arbol, fechaParcial1))
+                mapa_estacionOrigen = lt.getElement(lst, 3)
+                mapa_horasOrigen= lt.getElement(lst, 5)
+                val_totalViajes = lt.getElement(lst, 1)
+                val_totalTiempoViaje = lt.getElement(lst, 2)
+                lt.changeInfo(lst, 1, val_totalViajes + 1)
+                lt.changeInfo(lst, 2, val_totalTiempoViaje + tiempo_viaje)
+                
+                try:
+                    veces_estacionOrigen = me.getValue(mp.get(mapa_estacionOrigen, nombreFormateado_estacionSalida))
+                    mp.put(mapa_estacionOrigen, nombreFormateado_estacionSalida, veces_estacionOrigen + 1)
+                except:
+                    mp.put(mapa_estacionOrigen, nombreFormateado_estacionSalida, 1)
+
+                veces_horaOrigen = me.getValue(mp.get(mapa_horasOrigen, hora1))
+                mp.put(mapa_horasOrigen, hora1, veces_horaOrigen + 1)
+
+                lt.changeInfo(lst, 1, val_totalViajes + 1)
+                lt.changeInfo(lst, 2, val_totalTiempoViaje + tiempo_viaje)
+                lt.changeInfo(lst, 3, mapa_estacionOrigen)
+                lt.changeInfo(lst, 5, mapa_horasOrigen)
+                om.put(arbol, fechaParcial1, lst)                
+
+            else:
+                lst = lt.newList(datastructure='ARRAY_LIST')
+                mapa_estacionOrigen = mp.newMap()
+                mapa_estacionDestino = mp.newMap()
+                mapa_horasOrigen= mp.newMap()
+                mapa_horasDestino= mp.newMap()
+                mp.put(mapa_estacionOrigen, nombreFormateado_estacionSalida, 1)
+                for _ in range(24):
+                    mp.put(mapa_horasOrigen, _, 0)
+                    mp.put(mapa_horasDestino, _, 0)
+                mp.put(mapa_horasOrigen, hora1, 1)
+                lt.addLast(lst, 1)
+                lt.addLast(lst, tiempo_viaje)
+                lt.addLast(lst, mapa_estacionOrigen)
+                lt.addLast(lst, mapa_estacionDestino)
+                lt.addLast(lst, mapa_horasOrigen)
+                lt.addLast(lst, mapa_horasDestino)
+                om.put(arbol, fechaParcial1, lst)
+
+            if existe2:
+                lst = me.getValue(om.get(arbol, fechaParcial2))
+                val_totalViajes = lt.getElement(lst, 1)
+                val_totalTiempoViaje = lt.getElement(lst, 2)
+                mapa_estacionDestino = lt.getElement(lst, 4)
+                mapa_horasDestino= lt.getElement(lst, 6)
+
+                
+
+                try:
+                    veces_estacionDestino = me.getValue(mp.get(mapa_estacionDestino, nombreFormateado_estacionLlegada))
+                    mp.put(mapa_estacionDestino, nombreFormateado_estacionLlegada, veces_estacionDestino + 1)
+                except:
+                    mp.put(mapa_estacionDestino, nombreFormateado_estacionLlegada, 1)
+                
+                veces_horaDestino = me.getValue(mp.get(mapa_horasDestino, hora2))
+                mp.put(mapa_horasDestino, hora2, veces_horaDestino + 1)
+
+                lt.changeInfo(lst, 1, val_totalViajes + 1)
+                lt.changeInfo(lst, 2, val_totalTiempoViaje + tiempo_viaje)
+                lt.changeInfo(lst, 4, mapa_estacionDestino)
+                lt.changeInfo(lst, 6, mapa_horasDestino)
+                om.put(arbol, fechaParcial2, lst)
+            else:
+                lst = lt.newList(datastructure='ARRAY_LIST')
+                mapa_estacionOrigen = mp.newMap()
+                mapa_estacionDestino = mp.newMap()
+                mapa_horasOrigen= mp.newMap()
+                mapa_horasDestino= mp.newMap()
+                mp.put(mapa_estacionDestino, nombreFormateado_estacionLlegada, 1)
+                for _ in range(24):
+                    mp.put(mapa_horasOrigen, _, 0)
+                    mp.put(mapa_horasDestino, _, 0)
+                mp.put(mapa_horasDestino, hora2, 1)
+                lt.addLast(lst, 1)
+                lt.addLast(lst, tiempo_viaje)
+                lt.addLast(lst, mapa_estacionOrigen)
+                lt.addLast(lst, mapa_estacionDestino)
+                lt.addLast(lst, mapa_horasOrigen)
+                lt.addLast(lst, mapa_horasDestino)
+                om.put(arbol, fechaParcial2, lst)
+    
+    def respuesta_req5(catalog, fecha_inicial, fecha_final):
+        mapa = catalog["arbolFechas_viajes_usuariosAnuales"]
+        fecha_inicial = datetime.datetime.strptime(fecha_inicial, '%m/%d/%Y')
+        fecha_final = datetime.datetime.strptime(fecha_final, '%m/%d/%Y')
+        valores = om.values(mapa, fecha_inicial, fecha_final)
+
+        estacionOrigenMasFrecuentada = lt.newList()
+        estacionOrigenMasFrecuentada_mapa = mp.newMap()
+        estacionDestinoMasFrecuentada = lt.newList()
+        estacionDestinoMasFrecuentada_mapa = mp.newMap()
+        horaDelDiaMasViajesInician = lt.newList()
+        horaDelDiaMasViajesInician_mapa = mp.newMap()
+        horaDelDiaMasViajesTerminan = lt.newList()
+        horaDelDiaMasViajesTerminan_mapa = mp.newMap()
+
+        # cmpGeneral3 - elemento a comparar 2
+
+        totalViajesRealizados = 0
+        totalTiempoViajes = 0
+        print(lt.size(valores))
+        for dia in lt.iterator(valores):
+            totalViajesRealizados += lt.getElement(dia, 1)
+            totalTiempoViajes += lt.getElement(dia, 2)
+            mapa_estacionOrigen = lt.getElement(dia, 3)
+            mapa_estacionDestino = lt.getElement(dia, 4)
+            mapa_horasOrigen = lt.getElement(dia, 5)
+            mapa_horasDestino = lt.getElement(dia, 6)
+            
+            # loop mapa_estacionOrigen
+            keys = mp.keySet(mapa_estacionOrigen)
+            for key in lt.iterator(keys):
+                existe = mp.contains(estacionOrigenMasFrecuentada_mapa, key)
+                if existe:
+                    value_lst = me.getValue(mp.get(estacionOrigenMasFrecuentada_mapa, key))
+                    info = lt.getElement(value_lst, 2)
+                    lt.changeInfo(value_lst, 2, info + me.getValue(mp.get(mapa_estacionOrigen, key)))
+                else:
+                    lst = lt.newList()
+                    lt.addLast(lst, key)
+                    lt.addLast(lst, me.getValue(mp.get(mapa_estacionOrigen, key)))
+                    lt.addLast(estacionOrigenMasFrecuentada, lst)
+                    mp.put(estacionOrigenMasFrecuentada_mapa, key, lst)
+            
+            keys = mp.keySet(mapa_estacionDestino)
+            for key in lt.iterator(keys):
+                existe = mp.contains(estacionDestinoMasFrecuentada_mapa, key)
+                if existe:
+                    value_lst = me.getValue(mp.get(estacionDestinoMasFrecuentada_mapa, key))
+                    info = lt.getElement(value_lst, 2)
+                    lt.changeInfo(value_lst, 2, info + me.getValue(mp.get(mapa_estacionDestino, key)))
+                else:
+                    lst = lt.newList()
+                    lt.addLast(lst, key)
+                    lt.addLast(lst, me.getValue(mp.get(mapa_estacionDestino, key)))
+                    lt.addLast(estacionDestinoMasFrecuentada, lst)
+                    mp.put(estacionDestinoMasFrecuentada_mapa, key, lst)
+
+            keys = mp.keySet(mapa_horasOrigen)
+            for key in lt.iterator(keys):
+                existe = mp.contains(horaDelDiaMasViajesInician_mapa, key)
+                if existe:
+                    value_lst = me.getValue(mp.get(horaDelDiaMasViajesInician_mapa, key))
+                    info = lt.getElement(value_lst, 2)
+                    lt.changeInfo(value_lst, 2, info + me.getValue(mp.get(mapa_horasOrigen, key)))
+                else:
+                    lst = lt.newList()
+                    lt.addLast(lst, key)
+                    lt.addLast(lst, me.getValue(mp.get(mapa_horasOrigen, key)))
+                    lt.addLast(horaDelDiaMasViajesInician, lst)
+                    mp.put(horaDelDiaMasViajesInician_mapa, key, lst)
+
+            keys = mp.keySet(mapa_horasDestino)
+            for key in lt.iterator(keys):
+                existe = mp.contains(horaDelDiaMasViajesTerminan_mapa, key)
+                if existe:
+                    value_lst = me.getValue(mp.get(horaDelDiaMasViajesTerminan_mapa, key))
+                    info = lt.getElement(value_lst, 2)
+                    lt.changeInfo(value_lst, 2, info + me.getValue(mp.get(mapa_horasDestino, key)))
+                else:
+                    lst = lt.newList()
+                    lt.addLast(lst, key)
+                    lt.addLast(lst, me.getValue(mp.get(mapa_horasDestino, key)))
+                    lt.addLast(horaDelDiaMasViajesTerminan, lst)
+                    mp.put(horaDelDiaMasViajesTerminan_mapa, key, lst)
+            
+        sa.sort(estacionOrigenMasFrecuentada, cmpGeneral3)
+        sa.sort(estacionDestinoMasFrecuentada, cmpGeneral3)
+        sa.sort(horaDelDiaMasViajesInician, cmpGeneral3)
+        sa.sort(horaDelDiaMasViajesTerminan, cmpGeneral3)
+
+        estacionDeOrigenMasFrecuentada = lt.getElement(estacionOrigenMasFrecuentada, 1)
+        estacionDeDestinoMasFrecuentada = lt.getElement(estacionDestinoMasFrecuentada, 1)
+        horaDiaMasViajesInician = lt.getElement(horaDelDiaMasViajesInician, 1)
+        horaDiaMasViajesTerminan= lt.getElement(horaDelDiaMasViajesTerminan, 1)
+
+        return (totalViajesRealizados, totalTiempoViajes, lt.getElement(estacionDeOrigenMasFrecuentada, 1), lt.getElement(estacionDeOrigenMasFrecuentada, 2), lt.getElement(estacionDeDestinoMasFrecuentada, 1), lt.getElement(estacionDeDestinoMasFrecuentada, 2), lt.getElement(horaDiaMasViajesInician, 1), lt.getElement(horaDiaMasViajesTerminan, 1))
+
+
+
+                
+
+
 
 # los que llegan asi mismo y los que no tienen duracion (o los que tienen duracion 0)

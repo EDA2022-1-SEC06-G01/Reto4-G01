@@ -32,6 +32,8 @@ from DISClib.ADT import orderedmap as om
 from DISClib.ADT import list as lt
 from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.ADT import graph as gr
+from DISClib.DataStructures import mapentry as me
+
 
 
 
@@ -72,11 +74,16 @@ def loadRoutes(catalog, routesFile):
             fila_incorrecta += 1 
             continue
         else:
+            ruta['Start Time Parcial'] = datetime.datetime.strptime(ruta['Start Time'][0:10], '%m/%d/%Y')
+            ruta['End Time Parcial'] = datetime.datetime.strptime(ruta['End Time'][0:10], '%m/%d/%Y')
             ruta['Start Time'] = datetime.datetime.strptime(ruta['Start Time'], '%m/%d/%Y %H:%M')
             ruta['End Time'] = datetime.datetime.strptime(ruta['End Time'], '%m/%d/%Y %H:%M')
             model.Viaje(catalog, ruta)
     model.Viaje.aniadir_conexiones(catalog)
     catalog["filas_incorrectas"] = fila_incorrecta
+
+    catalog["respuesta_req3"] = model.grafo_scc(catalog)
+
 
     
     # sa.sort(model.Estacion.top_estacionesSalida, model.cmpGeneral)
@@ -100,6 +107,14 @@ def hasPath(catalog, station_to_reach):
 def findPath(catalog, station_to_reach):
     return model.findPath(catalog, station_to_reach)
 
+def requerimiento1():
+    pass
+
+def requerimiento3(catalog):
+    return catalog["respuesta_req3"]
+
+def requerimiento5(catalog, fecha_inicial, fecha_final):
+    model.Viaje.respuesta_req5(catalog, fecha_inicial, fecha_final)
 
 # Inicialización del Catálogo de libros
 
