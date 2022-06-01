@@ -76,6 +76,7 @@ def loadRoutes(catalog, routesFile):
             ruta['End Time'] = datetime.datetime.strptime(ruta['End Time'], '%m/%d/%Y %H:%M')
             model.Viaje(catalog, ruta)
     model.Viaje.aniadir_conexiones(catalog)
+    model.Viaje.aniadir_conexiones_no_dirigido(catalog)
     catalog["filas_incorrectas"] = fila_incorrecta
 
 
