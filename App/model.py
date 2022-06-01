@@ -376,11 +376,19 @@ class Viaje:
         self.nombreFormateado_estacionLlegada = self.formatear_nombre(self.id_estacionLlegada, self.nombre_estacionLlegada)
 
         self.peso = route["Trip  Duration"]
+        fecha_salida = route["Start Time"]
 
         mapa_estaciones = catalog['estaciones']
         nombreEstaciones_nombreFormateados = catalog['nombreEstaciones_nombreFormateados']
         grafo = catalog['grafo']
-        fecha_salida = route["Start Time"]
+
+        # prueba
+        grafo_no_dirigido = catalog['grafo_no_dirigido']
+        self.agregar_datosViaje(grafo_no_dirigido, mapa_estaciones, self.nombreFormateado_estacionSalida, self.nombre_estacionSalida, self.id_estacionSalida, self.nombreFormateado_estacionLlegada, self.peso, nombreEstaciones_nombreFormateados, self.nombre_estacionLlegada, self.id_estacionLlegada, fecha_salida)
+
+
+
+
         self.agregar_datosViaje(grafo, mapa_estaciones, self.nombreFormateado_estacionSalida, self.nombre_estacionSalida, self.id_estacionSalida, self.nombreFormateado_estacionLlegada, self.peso, nombreEstaciones_nombreFormateados, self.nombre_estacionLlegada, self.id_estacionLlegada, fecha_salida)
     
     def agregar_datosViaje(self,
@@ -463,7 +471,26 @@ class Viaje:
             arcos = valor.arcos
             nombre_estacionesSalida = mp.keySet(arcos)
             for estacionSalida in lt.iterator(nombre_estacionesSalida):
-                lst_peso = me.getValue(mp.get(arcos, estacionSalida))
-                gr.addEdge(grafo, estacion, estacionSalida, lt.getElement(lst_peso, 2) / lt.getElement(lst_peso, 1))
+                valor_salida = me.getValue(mp.get(mapa_estaciones, estacionSalida))
+                arcos_salida = valor_salida.arcos
+                existe = mp.contains(arcos_salida, estacion)
+                if existe:
+                    lst_peso1 = me.getValue(mp.get(arcos, estacionSalida))
+                    lst_peso2 = me.getValue(mp.get(arcos_salida, estacion))
+                    promedio_1 = lt.getElement(lst_peso1, 2) / lt.getElement(lst_peso1, 1)
+                    promedio_2 = lt.getElement(lst_peso2, 2) / lt.getElement(lst_peso2, 1)
+                    if promedio_1 > promedio_2:
+                        gr.addEdge(grafo, estacion, estacionSalida, promedio_1)
+                    else:
+                        gr.addEdge(grafo, estacion, estacionSalida, promedio_2)
+                else:
+                    lst_peso = me.getValue(mp.get(arcos, estacionSalida))
+                    gr.addEdge(grafo, estacion, estacionSalida, lt.getElement(lst_peso, 2) / lt.getElement(lst_peso, 1))
+
+
+
+
+                
+                
 
 # los que llegan asi mismo y los que no tienen duracion (o los que tienen duracion 0)
