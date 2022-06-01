@@ -78,7 +78,7 @@ def loadRoutes(catalog, routesFile):
     model.Viaje.aniadir_conexiones(catalog)
     catalog["filas_incorrectas"] = fila_incorrecta
 
-
+    
     # sa.sort(model.Estacion.top_estacionesSalida, model.cmpGeneral)
     # print(lt.getElement(model.Estacion.top_estacionesSalida, 1))
 

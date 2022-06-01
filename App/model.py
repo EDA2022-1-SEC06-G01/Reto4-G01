@@ -76,6 +76,8 @@ def newCatalog():
 
         catalog['nombreEstaciones_nombreFormateados'] = mp.newMap(numelements=14000, maptype='PROBING', loadfactor=0.5)   
 
+        catalog['idBicicleta_objetoBicicleta'] = mp.newMap(numelements=14000, maptype='PROBING', loadfactor=0.5)   
+
         catalog['grafo'] = gr.newGraph(datastructure='ADJ_LIST',
                                               directed=True,
                                               size=14000,
@@ -349,8 +351,47 @@ class Estacion:
 
 
 class Bicicleta:
-    def __init__(self) -> None:
-        pass
+    total_bicicletas = 0
+    def __init__(self, id) -> None:
+        Bicicleta.total_bicicletas += 1
+        self.id_bicicleta = id
+        self.tiempo_de_uso_bicicleta = 0
+
+        self.estaciones_iniciado = lt.newList(datastructure="ARRAY_LIST")
+        self.estaciones_iniciadoMapa = mp.newMap(numelements=29, maptype='PROBING', loadfactor=0.5)
+        self.estaciones_terminado = lt.newList(datastructure="ARRAY_LIST")
+        self.estaciones_terminadoMapa = mp.newMap(numelements=29, maptype='PROBING', loadfactor=0.5)
+
+    def anidir_uso(self, duracion):
+        self.tiempo_de_uso_bicicleta += duracion
+    
+    def aniadir_estacionInicio(self, estacion):
+        existe = mp.contains(self.estaciones_iniciadoMapa, estacion)
+        if existe:
+            lst = me.getValue(mp.get(self.estaciones_iniciadoMapa, estacion))
+            val = lt.getElement(lst, 2)
+            lt.changeInfo(lst, 2, val + 1)
+        else:
+            lst = lt.newList(datastructure="ARRAY_LIST")
+            lt.addLast(lst, estacion)
+            lt.addLast(lst, 1)
+            lt.addLast(self.estaciones_iniciado, lst)
+            mp.put(self.estaciones_iniciadoMapa, estacion, lst)
+    
+    def aniadir_estacionFinalizacion(self, estacion):
+        existe = mp.contains(self.estaciones_terminadoMapa, estacion)
+        if existe:
+            lst = me.getValue(mp.get(self.estaciones_terminadoMapa, estacion))
+            val = lt.getElement(lst, 2)
+            lt.changeInfo(lst, 2, val + 1)
+        else:
+            lst = lt.newList(datastructure="ARRAY_LIST")
+            lt.addLast(lst, estacion)
+            lt.addLast(lst, 1)
+            lt.addLast(self.estaciones_terminado, lst)
+            mp.put(self.estaciones_terminadoMapa, estacion, lst)
+
+
 
 
 
@@ -372,6 +413,21 @@ class Viaje:
         self.nombreFormateado_estacionLlegada = self.formatear_nombre(self.id_estacionLlegada, self.nombre_estacionLlegada)
 
         self.peso = route["Trip  Duration"]
+
+        # Datos bicicleta
+        id = route["Bike Id"]
+        idBicicleta_objetoBicicleta = catalog['idBicicleta_objetoBicicleta']
+        existe = mp.contains(idBicicleta_objetoBicicleta, id)
+        if existe:
+            bicicleta = me.getValue(mp.get(idBicicleta_objetoBicicleta, id))
+            bicicleta.aniadir_estacionInicio(self.nombreFormateado_estacionSalida)
+            bicicleta.aniadir_estacionFinalizacion(self.nombreFormateado_estacionLlegada)
+        else:
+            bicicleta = Bicicleta(id)
+            bicicleta.aniadir_estacionInicio(self.nombreFormateado_estacionSalida)
+            bicicleta.aniadir_estacionFinalizacion(self.nombreFormateado_estacionLlegada)
+            mp.put(idBicicleta_objetoBicicleta, id, bicicleta)
+
 
         mapa_estaciones = catalog['estaciones']
         nombreEstaciones_nombreFormateados = catalog['nombreEstaciones_nombreFormateados']
@@ -401,6 +457,8 @@ class Viaje:
         self.aniadirNombreEstacion_estacionFormateada(nombreEstaciones_nombreFormateados, nombre_estacionSalida, nombreFormateado_estacionSalida)
         contiene_llave = mp.contains(mapa_estaciones, nombreFormateado_estacionSalida)
 
+
+        # CONTINUA REQUERIMIENTO 6
         if contiene_llave:
             estacion = me.getValue(mp.get(mapa_estaciones, nombreFormateado_estacionSalida))
             estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso, hora_salida)
