@@ -90,6 +90,8 @@ def loadRoutes(catalog, routesFile):
     # print(lt.getElement(model.Estacion.top_estacionesSalida, 1))
 
     model.grafo_scc(catalog)
+
+    
     
     return catalog
     

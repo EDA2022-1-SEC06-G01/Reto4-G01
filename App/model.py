@@ -215,27 +215,18 @@ def findPath(catalog, station_to_reach):
 
 # Funciones de consulta
 
-def searchPaths(catalog, initialVertex):
-    path = dfs.DepthFirstSearch(catalog['grafo'], initialVertex)
-    catalog['posibles_caminos'] = path
-    return catalog
-
 def posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
-    paths = searchPaths(catalog, initialVertex)
-    stations = mp.keySet(paths)
+
+    dijsktra = grafo_dijsktra(catalog, initialVertex)
+    visited = dijsktra["grafo_dijsktra"]["visited"]
+    stations = mp.keySet(visited)
+    routes = lt.newList('ARRAY_LIST')
+    print(visited)
     print(stations)
-    return
 
-def estacion_mas_viajes_origen(catalog):
-
-    grafo = catalog['grafo']
-    num_est = gr.numVertices(grafo)
-    list_vert = gr.vertices(grafo)
-
-    #for i in range(num_est):
-    vertice = list_vert[0]
-    print(gr.degree(vertice))
-    return
+    for i in lt.iterator(stations):
+        path = findPath(catalog["grafo_dijsktra"], i)
+        print(path)
 
 # Funciones utilizadas para comparar elementos dentro de una lista
 
@@ -431,13 +422,6 @@ class Viaje:
 
         
         if route["User Type"] == "Annual Member":
-
-
-
-
-
-
-
             self.aniadirFecha_arbol(catalog, route, self.nombreFormateado_estacionSalida, self.nombreFormateado_estacionLlegada)
 
         # Datos bicicleta
@@ -536,7 +520,7 @@ class Viaje:
                 lst_peso = me.getValue(mp.get(arcos, estacionSalida))
                 gr.addEdge(grafo, estacion, estacionSalida, lt.getElement(lst_peso, 2) / lt.getElement(lst_peso, 1))
     
-    # continuar reto 5
+    
     def aniadirFecha_arbol(self, catalog, route, nombreFormateado_estacionSalida, nombreFormateado_estacionLlegada):
         arbol = catalog["arbolFechas_viajes_usuariosAnuales"]
         fecha1 = route["Start Time"]
