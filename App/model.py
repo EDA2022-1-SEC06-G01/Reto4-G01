@@ -70,6 +70,7 @@ def newCatalog():
             'peso_arcos': None,
             'grafo_dijsktra': None,
             'componentesFuertementeConectados': None,
+            'grafo_no_dirigido': None
         }
 
         catalog['estaciones'] = mp.newMap(numelements=14000, maptype='PROBING', loadfactor=0.5)        
@@ -81,6 +82,11 @@ def newCatalog():
                                               size=14000,
                                               comparefunction=compareStopIds)
         catalog["componentesFuertementeConectados"] = lt.newList(datastructure='ARRAY_LIST')
+
+        catalog['grafo_no_dirigido'] = gr.newGraph(datastructure='ADJ_LIST',
+                                              directed=False,
+                                              size=14000,
+                                              comparefunction=compareStopIds)
 
         return catalog
     except Exception as exp:
@@ -439,6 +445,19 @@ class Viaje:
     def aniadir_conexiones(catalog):
         mapa_estaciones = catalog['estaciones']
         grafo = catalog['grafo']
+
+        nombre_estaciones = mp.keySet(mapa_estaciones)
+        for estacion in lt.iterator(nombre_estaciones):
+            valor = me.getValue(mp.get(mapa_estaciones, estacion))
+            arcos = valor.arcos
+            nombre_estacionesSalida = mp.keySet(arcos)
+            for estacionSalida in lt.iterator(nombre_estacionesSalida):
+                lst_peso = me.getValue(mp.get(arcos, estacionSalida))
+                gr.addEdge(grafo, estacion, estacionSalida, lt.getElement(lst_peso, 2) / lt.getElement(lst_peso, 1))
+    
+    def aniadir_conexiones_no_dirigido(catalog):
+        mapa_estaciones = catalog['estaciones']
+        grafo = catalog['grafo_no_dirigido']
 
         nombre_estaciones = mp.keySet(mapa_estaciones)
         for estacion in lt.iterator(nombre_estaciones):
