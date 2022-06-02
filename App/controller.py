@@ -88,6 +88,8 @@ def loadRoutes(catalog, routesFile):
             ruta['End Time Hora'] = datetime.datetime.strptime(ruta['End Time'][0:13], '%m/%d/%Y %H')
             ruta['Start Time'] = datetime.datetime.strptime(ruta['Start Time'], '%m/%d/%Y %H:%M')
             ruta['End Time'] = datetime.datetime.strptime(ruta['End Time'], '%m/%d/%Y %H:%M')
+            ruta['NombreForStart'] = ruta['Start Station Id']+"-"+ruta["Start Station Name"]
+            ruta['NombreForEnd'] = ruta['End Station Id']+"-"+ruta["End Station Name"]
             model.Viaje(catalog, ruta)
     model.Viaje.aniadir_conexiones(catalog)
     catalog["filas_incorrectas"] = fila_incorrecta
@@ -96,8 +98,7 @@ def loadRoutes(catalog, routesFile):
 
     catalog["first_five"] = first_five
     catalog["last_five"] = last_five
-    # sa.sort(model.Estacion.top_estacionesSalida, model.cmpGeneral)
-    # print(lt.getElement(model.Estacion.top_estacionesSalida, 1))
+
 
     model.Estacion.respuesta_req1(catalog)
     

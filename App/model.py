@@ -401,8 +401,8 @@ class Estacion:
             current_value2 = lt.getElement(respuesta, 2)
             value_inicia = lt.getElement(_, 1)
             value_termina = lt.getElement(_, 2)
-            lt.changeInfo(respuesta, current_value1 + value_inicia)
-            lt.changeInfo(respuesta, current_value2 + value_termina)
+            lt.changeInfo(respuesta, 1, current_value1 + value_inicia)
+            lt.changeInfo(respuesta, 2, current_value2 + value_termina)
 
         return respuesta
 
@@ -900,24 +900,24 @@ class Viaje:
         mapa = Estacion.mapa_reqBono
         date = route["Start Time Hora"]
         endDate = route["End Time Hora"]
-        existe = mp.contains(mapa, route["Start Station Name"])
-        existe2 = mp.contains(mapa, route["End Station Name"])
+        existe = mp.contains(mapa, route['NombreForStart'] )
+        existe2 = mp.contains(mapa, route['NombreForEnd'])
         if not existe:
             new_orderMap = om.newMap(omaptype="RBT", comparefunction=compare_generalArboles)
             lst = lt.newList(datastructure="ARRAY_LIST")
             lt.addLast(lst, 1)
             lt.addLast(lst, 0)
             om.put(new_orderMap, date, lst)
-            mp.put(mapa, route["Start Station Name"], new_orderMap)
+            mp.put(mapa, route['NombreForStart'] , new_orderMap)
         if not existe2:
             new_orderMap = om.newMap(omaptype="RBT", comparefunction=compare_generalArboles)
             lst = lt.newList(datastructure="ARRAY_LIST")
             lt.addLast(lst, 0)
             lt.addLast(lst, 1)
             om.put(new_orderMap, endDate, lst)
-            mp.put(mapa, route["End Station Name"], new_orderMap)
+            mp.put(mapa, route['NombreForEnd'], new_orderMap)
             
-        valueStart = me.getValue(mp.get(mapa, route["Start Station Name"])) 
+        valueStart = me.getValue(mp.get(mapa, route['NombreForStart'] )) 
         mapa_om1 = om.contains(valueStart, date)      
         if mapa_om1:
             lst = me.getValue(om.get(valueStart, date))
@@ -929,7 +929,7 @@ class Viaje:
             lt.addLast(lst, 1)
             om.put(valueStart, date, lst)
 
-        valueEnd = me.getValue(mp.get(mapa, route["End Station Name"]))   
+        valueEnd = me.getValue(mp.get(mapa, route['NombreForEnd']))   
         mapa_om1 = om.contains(valueEnd, endDate)      
         if mapa_om1:
             lst = me.getValue(om.get(valueEnd, endDate))
