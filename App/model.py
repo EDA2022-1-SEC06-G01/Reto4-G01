@@ -231,7 +231,6 @@ def minimimCost(catalog, estacion_inicial, estacion_final):
         lt.addLast(lst_camino, station_info)
         conteo += stop['weight']
     lt.addLast(lst_camino, (0, f'{estacion_final}'))
-    print(lst_camino)
     return lst_camino, conteo
 
 # Funciones para agregar informacion al catalogo
