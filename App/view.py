@@ -281,6 +281,7 @@ def print_req4(estacion_inicio, estacion_final, costo, path):
 def print_req7(respuesta):
     inicia = lt.getElement(respuesta[2], 1)
     termina = lt.getElement(respuesta[2], 2)
+    print("=== Bono ===")
     print(f"El total de viajes que iniciaron en dicha estación en el rango de tiempo solicitado: {inicia}")
     print(f"El total de viajes que terminaron en dicha estación en el rango de tiempo solicitado: {termina}")
     print(f"El viaje de mayor duración promedio saliendo de la estación de consulta: {respuesta[0]}")
