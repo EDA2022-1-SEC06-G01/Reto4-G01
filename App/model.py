@@ -862,7 +862,53 @@ def exitProgram():
     os._exit(1)
 
 
+def minimumCostPath(analyzer, destStation):
+    """
+    Retorna el camino de costo minimo entre la estacion de inicio
+    y la estacion destino
+    Se debe ejecutar primero la funcion minimumCostPaths
+    """
+    path = djk.pathTo(analyzer['paths'], destStation)
+    return path
 
+def posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
+
+    #id_station = mp.get(catalog['nombreEstaciones_nombreFormateados'], initialVertex)
+    #initialVertex = me.getValue(id_station)
+
+    dij = minimumCostPaths(catalog, initialVertex)
+    visited = dij["visited"]
+    stations = mp.keySet(visited)
+    trip_duration = maxDuration / 2
+    routes = lt.newList('ARRAY_LIST')
+
+    for i in lt.iterator(stations):
+        duration = djk.distTo(dij, i)
+        path = djk.pathTo(dij, i)
+
+        if path is not None:
+            cantidad_estaciones = st.size(path)
+            if duration <= trip_duration and numMinStopStations <= cantidad_estaciones:
+                lt.addLast(routes, path)
+
+    user_routes = lt.subList(routes, 1, maxStations)
+    list_paths = lt.newList('ARRAY_LIST')
+
+    for route in lt.iterator(user_routes):
+        list_path = lt.newList('ARRAY_LIST')
+        conteo = 0
+
+
+        while (not st.isEmpty(route)):
+            stop = st.pop(route)
+            station_info = (stop['weight'], stop['vertexA'], stop['vertexB'])
+            lt.addLast(list_path, station_info)
+            conteo += stop['weight']
+
+        path_info = (conteo, list_path)
+        lt.addLast(list_paths, path_info)
+
+    return list_paths, lt.size(routes)
 
 
 

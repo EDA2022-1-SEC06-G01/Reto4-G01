@@ -138,7 +138,8 @@ def requerimiento5(catalog, fecha_inicial, fecha_final):
 def requerimiento6(catalog, id_bici):
     return model.Bicicleta.respuesta_req6(catalog, id_bici)
 
-
+def requerimiento_2(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
+    return model.posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations)
 
 # djikstra
 

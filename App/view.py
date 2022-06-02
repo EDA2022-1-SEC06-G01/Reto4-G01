@@ -99,8 +99,23 @@ def printRequerimiento2(routes, size, estacion_origen, maxDuration, numMinStopsS
     print("================== Req No. 2 Answer ==================")
     print()
     print(f"From {estacion_origen} are {size} possible routes")
-    print()
-    print(routes)
+    table = PrettyTable()
+    table.field_names = ["Stops Stations", "Route Time ", "Start Stations", "Stop Stations"]
+    table.max_table_width = 120
+    table.max_width = 20
+    for _ in range(1,6):
+        for i in lt.iterator(routes):
+                path = i[1]
+                stop_stations = lt.size(i[1]) + 1
+                for station in lt.iterator(path):
+                    weight = station[0]
+                    initial_station = station[1]
+                    finish_station = station[2]
+                table.add_row([stop_stations,
+                                weight,
+                                initial_station,
+                                finish_station])
+    return print(table.get_string())
 
 def print_req3(catalog, respuesta):
     print("===================== Req No. 3 Inputs =====================")
@@ -285,6 +300,7 @@ while True:
     # Condicional para seleccionar la opcion 2 (Planear paseos turisticos por la ciudad)
     elif int(inputs[0]) == 2:
         estacion_origen = input("Ingrese el nombre de la estacion de la cual quiere partir: ")
+        estacion_origen = seleccionar_estacion(catalog, estacion_origen)
         maxDuration = int(input("Ingrese cual es el maximo de tiempo del recorrido: "))
         numMinStopsStations = int(input("Ingrese la cantidad de estaciones que quiere visitar: "))
         maxStations = int(input("Ingrese el maximo de paradas que quiere hacer: "))
