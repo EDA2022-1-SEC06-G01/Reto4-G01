@@ -363,7 +363,6 @@ while True:
         fecha_inicio = input("Fecha y hora de inicio: ")
         fecha_final = input("Fecha y hora de finalización: ")
         respuesta = controller.req_bono(obj, nombre_estacion, fecha_inicio, fecha_final)
-        print(respuesta)
 
         
         print_req7(respuesta)

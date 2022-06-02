@@ -408,7 +408,8 @@ class Estacion:
 
     def respuesta_reqBono(self, estacion, fechaInicial, fechaFinal):
         max_IniciaTermina = self.total_viajes_queIniciaronYTerminaronEnRango(estacion, fechaInicial, fechaFinal)
-        return (self.mayor_duracion_promedio_viaje, self.hallar_estacion_donde_llegaron_mayor_cantidad_de_viajes, max_IniciaTermina)
+        maximo = self.hallar_estacion_donde_llegaron_mayor_cantidad_de_viajes
+        return (self.mayor_duracion_promedio_viaje, maximo, max_IniciaTermina)
 
 
     
