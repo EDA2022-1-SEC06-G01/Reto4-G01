@@ -35,7 +35,7 @@ from DISClib.Algorithms.Sorting import shellsort as sa
 from DISClib.ADT import stack as st
 from DISClib.Algorithms.Graphs import dfs
 from DISClib.Algorithms.Graphs import bfs
-from DISClib.Algorithms.Graphs import dijsktra
+from DISClib.Algorithms.Graphs import dijsktra as djk
 from DISClib.Algorithms.Graphs import scc
 from DISClib.ADT import orderedmap as om
 from DISClib.Utils import error as error
@@ -71,7 +71,7 @@ def newCatalog():
             'grafo_scc': None,
             'maxValue_stationInComponent': None,
             'peso_arcos': None,
-            'grafo_dijsktra': None,
+            'paths': None,
             'componentesFuertementeConectados': None,
         }
 
@@ -94,8 +94,6 @@ def newCatalog():
         catalog["respuesta_req1"] = None
 
         catalog["numero_de_estaciones"] = None
-
-        catalog["grafo_dijsktra"] = None
 
 
         return catalog
@@ -189,83 +187,49 @@ def mayorCantidad_llegadas(catalog, lst):
 
 
 
-def max_scc(catalog):
-    value = catalog["grafo_scc"]
-    keys = mp.keySet(value)
-    values = mp.valueSet(value)
-    maximums = mp.newMap(numelements=14000, maptype='PROBING', loadfactor=0.5)
-    for value in range(1, lt.size(values) + 1):
-        existe = mp.contains(maximums, value)
-        if existe:
-            pass
-        else:
-            pass
-
-def grafo_dijsktra(catalog, vertice_inicial):
-    grafo = catalog["grafo"]
-    catalog["grafo_dijsktra"] = dijsktra.Dijkstra(grafo, vertice_inicial)
-    return catalog
-
-def hasPath(catalog, station_to_reach):
-    search = catalog["grafo_dijsktra"]
-    return dijsktra.hasPathTo(search, station_to_reach)
-
-def findPath(catalog, station_to_reach):
-    search = catalog["grafo_dijsktra"]
-    return dijsktra.pathTo(search, station_to_reach)
 
 
 
 
-def minimimCost(catalog, estacion_inicial, estacion_final):
 
-    dij = grafo_dijsktra(catalog, estacion_inicial)
-    camino = findPath(dij["grafo_dijsktra"], estacion_final)
-    lst_camino = lt.newList("ARRAY_LIST")
-    conteo =  0
 
-    while (not st.isEmpty(camino)):
+def minimumCostPaths(catalog, initialStation):
+    """
+    Calcula los caminos de costo mínimo desde la estacion initialStation
+    a todos los demas vertices del grafo
+    """
+    catalog['paths'] = djk.Dijkstra(catalog['grafo'], initialStation)
+    return catalog['paths']
 
-        stop = st.pop(camino)
-        station_info = (stop['weight'], stop['vertexA'])
-        lt.addLast(lst_camino, station_info)
-        conteo += stop['weight']
-    lt.addLast(lst_camino, (0, f'{estacion_final}'))
-    return lst_camino, conteo
 
-# Funciones para agregar informacion al catalogo
+def hasPath(catalog, destStation):
+    """
+    Indica si existe un camino desde la estacion inicial a la estación destino
+    Se debe ejecutar primero la funcion minimumCostPaths
+    """
+    return djk.hasPathTo(catalog['paths'], destStation)
 
-# Funciones para creacion de datos
 
-# Funciones de consulta
+def minimumCostPath(catalog, destStation):
+    """
+    Retorna el camino de costo minimo entre la estacion de inicio
+    y la estacion destino
+    Se debe ejecutar primero la funcion minimumCostPaths
+    """
+    path = djk.pathTo(catalog['paths'], destStation)
+    return path
 
-def posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
 
-    #id_station = mp.get(catalog['nombreEstaciones_nombreFormateados'], initialVertex)
-    #initialVertex = me.getValue(id_station)
+def req4(catalog, estacion_inicial, estacion_final):
+    grafo_dijsktra = minimumCostPaths(catalog, estacion_inicial)
+    existe = djk.hasPathTo(grafo_dijsktra, estacion_final)
+    if existe:
+        costo = djk.distTo(grafo_dijsktra, estacion_final)
+        path = minimumCostPath(catalog, estacion_final)
+        return path, costo
+    else:
+        return "No hay camino"
 
-    dij = grafo_dijsktra(catalog, initialVertex)
-    d_grafo = dij["grafo_dijsktra"]
-    visited = d_grafo["visited"]
-    stations = mp.keySet(visited)
-    trip_duration = maxDuration / 2
-    routes = lt.newList('ARRAY_LIST')
-
-    for i in lt.iterator(stations):
-        duration = dijsktra.distTo(d_grafo, i)
-        path = findPath(catalog, i)
-
-        if path is not None:
-            cantidad_estaciones = st.size(path)
-
-            if duration <= trip_duration and numMinStopStations <= cantidad_estaciones:
-                lt.addLast(routes, path)
-
-    size = lt.size(routes)
-    return routes, size
-# Funciones utilizadas para comparar elementos dentro de una lista
-
-# Funciones de ordenamiento
 
 
 def compareStopIds(stop, keyvaluestop):

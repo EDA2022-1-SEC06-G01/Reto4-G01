@@ -29,6 +29,7 @@ from prettytable import PrettyTable
 from DISClib.DataStructures import mapentry as me
 from DISClib.ADT import map as mp
 from DISClib.Algorithms.Graphs import scc
+import model
 
 
 
@@ -64,7 +65,7 @@ def printMenu():
  - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว - (งツ)ว -
 """
 
-def print_req1(numero_estaciones, response):
+def print_req1(catalog, numero_estaciones, response):
     print("===================== Req No. 1 Inputs =====================")
     print("TOP 5 stations inside in the Bikeshre Network.")
     print(f"Number of stations in the network: {numero_estaciones}")
@@ -72,7 +73,7 @@ def print_req1(numero_estaciones, response):
     print("===================== Req No. 1 Answer =====================")
     print("TOP 5 stations used as trip origins are:")
     table = PrettyTable()
-    table.field_names = ["Station ID", "Station Name", "Out Trips", "Subscriber Out Trips", "Out Degree (Routes)", "Rush hour", "Rush date"]
+    table.field_names = ["Station ID", "Station Name", "Out Trips", "Subscriber Out Trips", "Turist Out Trips", "Out Degree (Routes)", "Rush hour", "Rush date"]
     table.max_table_width = 120
     table.max_width = 20
     for _ in lt.iterator(response):
@@ -81,6 +82,7 @@ def print_req1(numero_estaciones, response):
                         me.getValue(mp.get(_, "trayectos_iniciados")),
                         me.getValue(mp.get(_, "numero_subscriptorAnual")),
                         me.getValue(mp.get(_, "numero_turistas")),
+                        gr.outdegree(catalog["grafo"], f'{me.getValue(mp.get(_, "id_estacion"))}-{me.getValue(mp.get(_, "nombre"))}'),
                         f"{me.getValue(mp.get(_, 'max_hora'))}:00h",
                         f"01/01/{me.getValue(mp.get(_, 'max_anio'))}"
                         ])
@@ -208,7 +210,7 @@ def print_req5(respuesta):
     print()
     print("===================== Req No. 5 Answer =====================")
     print(f"Total viajes realizados: {totalViajesRealizados}")
-    print(f"El total de tiempo invertido en los viajes: {totalTiempoViajes}")
+    print(f"El total de tiempo invertido en los viajes: {totalTiempoViajes} segundos")
     print(f"La estación de origen más frecuentada: {estacionDeOrigenMasFrecuentadaid} - {estacionDeOrigenMasFrecuentada}")
     print(f"La estación de destino más utilizada: {estacionDeDestinoMasFrecuentadaid} - {estacionDeDestinoMasFrecuentada}")
     print(f"La hora del día en la que más viajes inician {horaDiaMasViajesInician}:00h")
@@ -223,17 +225,47 @@ def print_req6(respuesta, id_bici):
     total_viajes = me.getValue(mp.get(respuesta, "total_viajes"))
     horas_de_uso = me.getValue(mp.get(respuesta, "horas_de_uso"))
     estacionIniciado_mas_viajes = me.getValue(mp.get(respuesta, "estacionIniciado_mas_viajes"))
-    estacionIniciado_mas_viajes = lt.getElement(estacionIniciado_mas_viajes, 1)
+    estacionIniciado_mas_viajes = lt.getElement(estacionIniciado_mas_viajes, 1).split("-")
     estacionFinalizado_mas_viajes = me.getValue(mp.get(respuesta, "estacionFinalizado_mas_viajes"))
-    estacionFinalizado_mas_viajes = lt.getElement(estacionFinalizado_mas_viajes, 1)
+    estacionFinalizado_mas_viajes = lt.getElement(estacionFinalizado_mas_viajes, 1).split("-")
     print(f"El total de viajes en los que ha participado dicha bicicleta: {total_viajes}")
     print(f"El total de horas de utilización de la bicicleta: {horas_de_uso}")
-    print(f"La estación en la que más viajes se han iniciado en esa bicicleta: {estacionIniciado_mas_viajes}")
-    print(f"La estación en la que más viajes ha terminado dicha bicicleta: {estacionFinalizado_mas_viajes}")
+    print(f"La estación en la que más viajes se han iniciado en esa bicicleta: {estacionIniciado_mas_viajes[1]} con id {estacionIniciado_mas_viajes[0]}")
+    print(f"La estación en la que más viajes ha terminado dicha bicicleta: {estacionFinalizado_mas_viajes[1]} con id {estacionFinalizado_mas_viajes[0]}")
     print()
+
+def print_req4(estacion_inicio, estacion_final, costo, path):
+    print("===================== Req No. 4 Inputs =====================")
+    print(f"Camino de {estacion_inicio} a {estacion_final}")
+    print()
+    print("===================== Req No. 4 Answer =====================")
+    print(f"Este recorrido tiene un costo de: {costo} segundos")
+    print()
+    print("El camino esta formado de la siguiente forma")
+    contador = 1
+    for _ in lt.iterator(path):
+        print(f"Paso #{contador}")
+        vertexA = _['vertexA'].split("-")
+        vertexB = _['vertexB'].split("-")
+        print(f"Sale de la estacion {vertexA[1]} con id {vertexA[0]}")
+        print(f"Llega a la estacion {vertexB[1]} con id {vertexB[0]}")
+        print(f"Este recorrido tendra un tiempo promedio de {_['weight']} segundos")
+        print()
+        contador += 1
     
 
-
+def seleccionar_estacion(catalog, estacion):
+    lst_estacion = me.getValue(mp.get(catalog['nombreEstaciones_nombreFormateados'], estacion))
+    if lt.size(lst_estacion) > 1:
+        contador = 1
+        for _ in lt.iterator(lst_estacion):
+            print(f"Opcion {contador}: {_}")
+            contador += 1
+        opcion = input(f"Cual desearia escoger? (1-{contador})")
+        estacion = lt.getElement(lst_estacion, opcion)
+    else:
+        estacion = lt.getElement(lst_estacion, 1)
+    return estacion
 
 
 catalog = None
@@ -248,7 +280,7 @@ while True:
     # Condicional para seleccionar la opcion 1 (Comprar bicicletas para las estaciones con mas viajes de origen)
     if int(inputs[0]) == 1:
         response = controller.requerimiento1(catalog)
-        print_req1(catalog["numero_de_estaciones"], response)
+        print_req1(catalog, catalog["numero_de_estaciones"], response)
         
     # Condicional para seleccionar la opcion 2 (Planear paseos turisticos por la ciudad)
     elif int(inputs[0]) == 2:
@@ -267,13 +299,13 @@ while True:
     # Condicional para seleccionar la opcion 4 (Planear una ruta rapida para el usuario) 
     elif int(inputs[0]) == 4:
         estacion_origen = input("Desde donde deseas que salga el usuario: ")
+        estacion_origen = seleccionar_estacion(catalog, estacion_origen)
         estacion_destino = input("A donde desea llegar el usuario: ")
+        estacion_destino = seleccionar_estacion(catalog, estacion_destino)
 
-        lst_camino, conteo = controller.minimimCost(catalog, estacion_origen, estacion_destino)
-        print(lst_camino)
-        print()
-        print(conteo)
 
+        path, costo = controller.req4(catalog, estacion_origen, estacion_destino)
+        print_req4(estacion_origen, estacion_destino, costo, path)
         
     # Condicional para seleccionar la opcion 5 (Reportar rutas en un rango de fechas para los usuarios anuales)
     elif int(inputs[0]) == 5:
@@ -301,19 +333,26 @@ while True:
         catalog = controller.loadRoutes(catalog, "Bikeshare-ridership-2021-utf8-small.csv")
         print("--- %s seconds ---" % (time.time() - start_time))
         from DISClib.ADT import graph as gr
-        print(f"Num vertices:{gr.numVertices(catalog['grafo'])}")
-        print(f"Num edges:{gr.numEdges(catalog['grafo'])}")
+        print(f"El total de viajes obtenidos de los datos: {model.Viaje.cantidad_viajes}")
+        print(f"Numero de vertices en el grafo: {gr.numVertices(catalog['grafo'])}")
+        print(f"Numero de arcos en el grafo: {gr.numEdges(catalog['grafo'])}")
         for _ in lt.iterator(catalog["first_five"]):
+            obj = me.getValue(mp.get(catalog['estaciones'], _['Start Station Id']+'-'+_['Start Station Name']))
             print(f"Station ID: {_['Start Station Id']}")
             print(f"Station name: {_['Start Station Name']}")
-            print(f"Indegree: {gr.indegree(catalog['grafo'], _['Start Station Id']+'-'+_['Start Station Name'])}")
-            print(f"Indegree: {gr.outdegree(catalog['grafo'], _['Start Station Id']+'-'+_['Start Station Name'])}")
+            print(f"Indegree: {gr.indegree(catalog['grafo'], obj.nombre_formatedo)}")
+            print(f"Outdegree: {gr.outdegree(catalog['grafo'], obj.nombre_formatedo)}")
+            print(f"In trips: {obj.estacion_llegada}")
+            print(f"Out trips: {obj.estacion_salida}")
             print()
         for _ in lt.iterator(catalog["last_five"]):
+            obj = me.getValue(mp.get(catalog['estaciones'], _['Start Station Id']+'-'+_['Start Station Name']))
             print(f"Station ID: {_['Start Station Id']}")
             print(f"Station name: {_['Start Station Name']}")
-            print(f"Indegree: {gr.indegree(catalog['grafo'], _['Start Station Id']+'-'+_['Start Station Name'])}")
-            print(f"Indegree: {gr.outdegree(catalog['grafo'], _['Start Station Id']+'-'+_['Start Station Name'])}")
+            print(f"Indegree: {gr.indegree(catalog['grafo'], obj.nombre_formatedo)}")
+            print(f"Outdegree: {gr.outdegree(catalog['grafo'], obj.nombre_formatedo)}")
+            print(f"In trips: {obj.estacion_llegada}")
+            print(f"Out trips: {obj.estacion_salida}")
             print()
 
 

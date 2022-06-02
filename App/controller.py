@@ -138,8 +138,21 @@ def requerimiento5(catalog, fecha_inicial, fecha_final):
 def requerimiento6(catalog, id_bici):
     return model.Bicicleta.respuesta_req6(catalog, id_bici)
 
-def minimimCost(catalog, estacion_inicial, estacion_final):
-    return model.minimimCost(catalog, estacion_inicial, estacion_final)
+
+
+# djikstra
+
+def minimumCostPaths(catalog, initialStation):
+    return model.minimumCostPaths(catalog, initialStation)
+
+def hasPath(catalog, destStation):
+    return model.hasPath(catalog, destStation)
+
+def minimumCostPath(catalog, destStation):
+    return model.minimumCostPath(catalog, destStation)
+
+def req4(catalog, estacion_inicial, estacion_final):
+    return model.req4(catalog, estacion_inicial, estacion_final)
 
 # Inicialización del Catálogo de libros
 
