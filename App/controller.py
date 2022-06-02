@@ -63,6 +63,8 @@ def loadRoutes(catalog, routesFile):
                                 delimiter=",")
     fila_incorrecta = 0
     contador = 0
+    first_five = lt.newList(datastructure="ARRAY_LIST")
+    last_five = lt.newList(datastructure="ARRAY_LIST")
     for ruta in input_file:
         contador += 1
         if ruta["Bike Id"] == "" \
@@ -74,6 +76,12 @@ def loadRoutes(catalog, routesFile):
             fila_incorrecta += 1 
             continue
         else:
+            if lt.size(first_five) != 5:
+                lt.addLast(first_five, ruta)
+                lt.addFirst(last_five, ruta)
+            else:
+                lt.addLast(last_five, ruta)
+                lt.removeFirst(last_five)
             ruta['Start Time Parcial'] = datetime.datetime.strptime(ruta['Start Time'][0:10], '%m/%d/%Y')
             ruta['End Time Parcial'] = datetime.datetime.strptime(ruta['End Time'][0:10], '%m/%d/%Y')
             ruta['Start Time'] = datetime.datetime.strptime(ruta['Start Time'], '%m/%d/%Y %H:%M')
@@ -84,13 +92,12 @@ def loadRoutes(catalog, routesFile):
 
     catalog["respuesta_req3"] = model.grafo_scc(catalog)
 
-
-    
+    catalog["first_five"] = first_five
+    catalog["last_five"] = last_five
     # sa.sort(model.Estacion.top_estacionesSalida, model.cmpGeneral)
     # print(lt.getElement(model.Estacion.top_estacionesSalida, 1))
 
-    model.grafo_scc(catalog)
-
+    model.Estacion.respuesta_req1(catalog)
     
     
     return catalog
@@ -109,14 +116,30 @@ def hasPath(catalog, station_to_reach):
 def findPath(catalog, station_to_reach):
     return model.findPath(catalog, station_to_reach)
 
-def requerimiento1():
-    pass
+def mayorCantidad_salidas(catalog, lst):
+    return model.mayorCantidad_salidas(catalog, lst)
+
+
+def mayorCantidad_llegadas(catalog, lst):
+    return model.mayorCantidad_llegadas(catalog, lst)
+
+def requerimiento1(catalog):
+    return catalog["respuesta_req1"]
 
 def requerimiento3(catalog):
-    return catalog["respuesta_req3"]
+    return model.formatear_respuesta_req3(catalog, )
+
+def requirement4(analyzer, origin_station, arrival_station):
+    return model.requirement4(analyzer, origin_station, arrival_station)
 
 def requerimiento5(catalog, fecha_inicial, fecha_final):
-    model.Viaje.respuesta_req5(catalog, fecha_inicial, fecha_final)
+    return model.Viaje.respuesta_req5(catalog, fecha_inicial, fecha_final)
+
+def requerimiento6(catalog, id_bici):
+    return model.Bicicleta.respuesta_req6(catalog, id_bici)
+
+def minimimCost(catalog, estacion_inicial, estacion_final):
+    return model.minimimCost(catalog, estacion_inicial, estacion_final)
 
 # Inicialización del Catálogo de libros
 
@@ -126,8 +149,15 @@ def requerimiento5(catalog, fecha_inicial, fecha_final):
 
 # Funciones de consulta sobre el catálogo
 
-def requerimiento_1(catalog):
-    return model.estacion_mas_viajes_origen(catalog)
 
 def requerimiento_2(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
     return model.posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations)
+
+
+
+
+def clearConsole():
+    model.clearConsole()
+
+def exitProgram():
+    model.exitProgram()

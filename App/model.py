@@ -32,6 +32,7 @@ from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
 from DISClib.Algorithms.Sorting import shellsort as sa
+from DISClib.ADT import stack as st
 from DISClib.Algorithms.Graphs import dfs
 from DISClib.Algorithms.Graphs import bfs
 from DISClib.Algorithms.Graphs import dijsktra
@@ -40,6 +41,7 @@ from DISClib.ADT import orderedmap as om
 from DISClib.Utils import error as error
 assert cf
 import datetime
+import os
 
 
 
@@ -89,6 +91,12 @@ def newCatalog():
 
         catalog["respuesta_req3"] = None
 
+        catalog["respuesta_req1"] = None
+
+        catalog["numero_de_estaciones"] = None
+
+        catalog["grafo_dijsktra"] = None
+
 
         return catalog
     except Exception as exp:
@@ -121,11 +129,8 @@ def grafo_scc(catalog):
         lt.addLast(lst_actual, estation)
 
     lst_componentes = sa.sort(lst_componentes, cmpGeneral2)
-
-    firstThree = lt.subList(lst_componentes, 1, 3)
-    lastThree = lt.subList(lst_componentes, numero_de_componentesFuertementementeConectados - 2, 3)
-    respuesta = formatear_respuesta_req3(catalog, firstThree, lastThree)
-    return respuesta
+    
+    return lst_componentes
 
 def formatear_respuesta_req3(catalog, firstThree, lastThree):
     lst_respuesta = lt.newList(datastructure='ARRAY_LIST')
@@ -149,6 +154,7 @@ def formatear_respuesta_req3(catalog, firstThree, lastThree):
         lt.addLast(lst_respuestaActual, resSalidas)
         lt.addLast(lst_respuestaActual, resLlegadas)
         lt.addLast(lst_respuesta, lst_respuestaActual)
+    catalog["respuesta_req3"] = lst_respuesta
     return lst_respuesta
 
 def mayorCantidad_salidas(catalog, lst):
@@ -198,6 +204,7 @@ def max_scc(catalog):
 def grafo_dijsktra(catalog, vertice_inicial):
     grafo = catalog["grafo"]
     catalog["grafo_dijsktra"] = dijsktra.Dijkstra(grafo, vertice_inicial)
+    return catalog
 
 def hasPath(catalog, station_to_reach):
     search = catalog["grafo_dijsktra"]
@@ -209,6 +216,24 @@ def findPath(catalog, station_to_reach):
 
 
 
+
+def minimimCost(catalog, estacion_inicial, estacion_final):
+
+    dij = grafo_dijsktra(catalog, estacion_inicial)
+    camino = findPath(dij["grafo_dijsktra"], estacion_final)
+    lst_camino = lt.newList("ARRAY_LIST")
+    conteo =  0
+
+    while (not st.isEmpty(camino)):
+
+        stop = st.pop(camino)
+        station_info = (stop['weight'], stop['vertexA'])
+        lt.addLast(lst_camino, station_info)
+        conteo += stop['weight']
+    lt.addLast(lst_camino, (0, f'{estacion_final}'))
+    print(lst_camino)
+    return lst_camino, conteo
+
 # Funciones para agregar informacion al catalogo
 
 # Funciones para creacion de datos
@@ -217,17 +242,28 @@ def findPath(catalog, station_to_reach):
 
 def posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
 
-    dijsktra = grafo_dijsktra(catalog, initialVertex)
-    visited = dijsktra["grafo_dijsktra"]["visited"]
+    #id_station = mp.get(catalog['nombreEstaciones_nombreFormateados'], initialVertex)
+    #initialVertex = me.getValue(id_station)
+
+    dij = grafo_dijsktra(catalog, initialVertex)
+    d_grafo = dij["grafo_dijsktra"]
+    visited = d_grafo["visited"]
     stations = mp.keySet(visited)
+    trip_duration = maxDuration / 2
     routes = lt.newList('ARRAY_LIST')
-    print(visited)
-    print(stations)
 
     for i in lt.iterator(stations):
-        path = findPath(catalog["grafo_dijsktra"], i)
-        print(path)
+        duration = dijsktra.distTo(d_grafo, i)
+        path = findPath(catalog, i)
 
+        if path is not None:
+            cantidad_estaciones = st.size(path)
+
+            if duration <= trip_duration and numMinStopStations <= cantidad_estaciones:
+                lt.addLast(routes, path)
+
+    size = lt.size(routes)
+    return routes, size
 # Funciones utilizadas para comparar elementos dentro de una lista
 
 # Funciones de ordenamiento
@@ -273,6 +309,8 @@ def compare_generalArboles(val1, val2):
     else:
         return -1
 
+
+
 # Modelos de los objetos 
 
 class Estacion:
@@ -292,6 +330,8 @@ class Estacion:
 
         self.estacion_llegada = 0
         self.estacion_salida = 0
+        self.estacion_salidaTuristas = 0
+        self.estacion_salidaSubscriptores = 0
         self.registro_hora = mp.newMap(numelements=29, maptype='PROBING', loadfactor=0.5)
         self.registro_anio = mp.newMap(numelements=29, maptype='PROBING', loadfactor=0.5)
         self.arcos = mp.newMap(numelements=5, maptype='PROBING', loadfactor=0.5)
@@ -301,9 +341,15 @@ class Estacion:
     def aniadir_llegada(self) -> None:
         self.estacion_llegada += 1
     
-    def aniadir_salida(self, nombreFormateado_estacionLlegada, peso_de_estacion, hora):
-        self.estacion_salida += 1
+    def aniadir_salida(self, nombreFormateado_estacionLlegada, peso_de_estacion, hora, subscripcion):
         self.registrar_hora(hora)
+        self.registrar_anio(hora)
+        self.estacion_salida += 1
+        if subscripcion == "Casual Member":
+            self.estacion_salidaTuristas += 1
+        if subscripcion == "Annual Member":
+            self.estacion_salidaSubscriptores += 1
+        
         peso_de_estacion = float(peso_de_estacion)
         
         mapa = self.arcos
@@ -349,6 +395,51 @@ class Estacion:
             mp.put(mapa, anio, 1)
 
 
+    
+    def respuesta_req1(catalog):
+        lst = lt.newList()
+        res = sa.sort(Estacion.top_estacionesSalida, cmpGeneral)
+        mapa = catalog['estaciones']
+        res = lt.subList(res, 1, 5)
+        for _ in lt.iterator(res):
+            new_mapa = mp.newMap()
+            city_name = lt.getElement(_, 2)
+            objeto = me.getValue(mp.get(mapa, city_name))
+            mp.put(new_mapa, "nombre", objeto.nombre)
+            mp.put(new_mapa, "id_estacion", objeto.id_estacion)
+            mp.put(new_mapa, "trayectos_iniciados", objeto.estacion_salida)
+            mp.put(new_mapa, "numero_subscriptorAnual", objeto.estacion_salidaSubscriptores)
+            mp.put(new_mapa, "numero_turistas", objeto.estacion_salidaTuristas)
+            max_hora = lt.newList()
+            lt.addLast(max_hora, -1)
+            lt.addLast(max_hora, -1)
+            mapa_horas = objeto.registro_hora
+            llaves_horas = mp.keySet(objeto.registro_hora)
+            max_anio = lt.newList()
+            lt.addLast(max_anio, -1)
+            lt.addLast(max_anio, -1)
+            mapa_anios = objeto.registro_anio
+            llaves_anios = mp.keySet(objeto.registro_anio)
+            for hora in lt.iterator(llaves_horas):
+                val = me.getValue(mp.get(mapa_horas, hora))
+                val_lst = lt.getElement(max_hora, 2)
+                if val_lst < val:
+                    lt.changeInfo(max_hora, 2, val)
+                    lt.changeInfo(max_hora, 1, hora)
+            
+            for anio in lt.iterator(llaves_anios):
+                val = me.getValue(mp.get(mapa_anios, anio))
+                val_lst = lt.getElement(max_anio, 2)
+                if val_lst < val:
+                    lt.changeInfo(max_anio, 2, val)
+                    lt.changeInfo(max_anio, 1, anio)
+            
+            mp.put(new_mapa, "max_anio", lt.getElement(max_anio, 1))
+            mp.put(new_mapa, "max_hora", lt.getElement(max_hora, 1))
+            lt.addLast(lst, new_mapa)
+
+        catalog["respuesta_req1"] = lst
+
 
 class Bicicleta:
     total_bicicletas = 0
@@ -356,6 +447,7 @@ class Bicicleta:
         Bicicleta.total_bicicletas += 1
         self.id_bicicleta = id
         self.tiempo_de_uso_bicicleta = 0
+        self.total_viajes = 0
 
         self.estaciones_iniciado = lt.newList(datastructure="ARRAY_LIST")
         self.estaciones_iniciadoMapa = mp.newMap(numelements=29, maptype='PROBING', loadfactor=0.5)
@@ -365,7 +457,9 @@ class Bicicleta:
     def anidir_uso(self, duracion):
         self.tiempo_de_uso_bicicleta += duracion
     
-    def aniadir_estacionInicio(self, estacion):
+    def aniadir_estacionInicio(self, estacion, duracion):
+        self.total_viajes += 1
+        self.anidir_uso(int(duracion))
         existe = mp.contains(self.estaciones_iniciadoMapa, estacion)
         if existe:
             lst = me.getValue(mp.get(self.estaciones_iniciadoMapa, estacion))
@@ -377,6 +471,7 @@ class Bicicleta:
             lt.addLast(lst, 1)
             lt.addLast(self.estaciones_iniciado, lst)
             mp.put(self.estaciones_iniciadoMapa, estacion, lst)
+            
     
     def aniadir_estacionFinalizacion(self, estacion):
         existe = mp.contains(self.estaciones_terminadoMapa, estacion)
@@ -394,6 +489,16 @@ class Bicicleta:
     def sort(self):
         sa.sort(self.estaciones_iniciado, cmpGeneral3)
         sa.sort(self.estaciones_terminado, cmpGeneral3)
+    
+    def respuesta_req6(catalog, id_bici):
+        bici = me.getValue(mp.get(catalog['idBicicleta_objetoBicicleta'], id_bici))
+        mapa = mp.newMap()
+        mp.put(mapa, "total_viajes", bici.total_viajes)
+        mp.put(mapa, "horas_de_uso", bici.tiempo_de_uso_bicicleta/3600)
+        mp.put(mapa, "estacionIniciado_mas_viajes", lt.getElement(bici.estaciones_iniciado, 1))
+        mp.put(mapa, "estacionFinalizado_mas_viajes", lt.getElement(bici.estaciones_terminado, 1))
+        return mapa
+
 
 
 
@@ -430,11 +535,11 @@ class Viaje:
         existe = mp.contains(idBicicleta_objetoBicicleta, id)
         if existe:
             bicicleta = me.getValue(mp.get(idBicicleta_objetoBicicleta, id))
-            bicicleta.aniadir_estacionInicio(self.nombreFormateado_estacionSalida)
+            bicicleta.aniadir_estacionInicio(self.nombreFormateado_estacionSalida, route["Trip  Duration"])
             bicicleta.aniadir_estacionFinalizacion(self.nombreFormateado_estacionLlegada)
         else:
             bicicleta = Bicicleta(id)
-            bicicleta.aniadir_estacionInicio(self.nombreFormateado_estacionSalida)
+            bicicleta.aniadir_estacionInicio(self.nombreFormateado_estacionSalida, route["Trip  Duration"])
             bicicleta.aniadir_estacionFinalizacion(self.nombreFormateado_estacionLlegada)
             mp.put(idBicicleta_objetoBicicleta, id, bicicleta)
         Bicicleta.sort
@@ -444,7 +549,8 @@ class Viaje:
         nombreEstaciones_nombreFormateados = catalog['nombreEstaciones_nombreFormateados']
         grafo = catalog['grafo']
         fecha_salida = route["Start Time"]
-        self.agregar_datosViaje(grafo, mapa_estaciones, self.nombreFormateado_estacionSalida, self.nombre_estacionSalida, self.id_estacionSalida, self.nombreFormateado_estacionLlegada, self.peso, nombreEstaciones_nombreFormateados, self.nombre_estacionLlegada, self.id_estacionLlegada, fecha_salida)
+        subscripcion = route["User Type"]
+        self.agregar_datosViaje(grafo, mapa_estaciones, self.nombreFormateado_estacionSalida, self.nombre_estacionSalida, self.id_estacionSalida, self.nombreFormateado_estacionLlegada, self.peso, nombreEstaciones_nombreFormateados, self.nombre_estacionLlegada, self.id_estacionLlegada, fecha_salida, subscripcion)
     
     def agregar_datosViaje(self,
                             grafo,
@@ -456,15 +562,15 @@ class Viaje:
                             nombreEstaciones_nombreFormateados,
                             nombre_estacionLlegada,
                             id_estacionLlegada,
-                            hora_salida):
+                            hora_salida, subscripcion):
 
-        self.salida(grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso, nombreEstaciones_nombreFormateados, hora_salida)
+        self.salida(grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso, nombreEstaciones_nombreFormateados, hora_salida, subscripcion)
         self.llegada(grafo, mapa_estaciones, nombreFormateado_estacionLlegada, nombre_estacionLlegada, id_estacionLlegada, nombreEstaciones_nombreFormateados)
     
     def formatear_nombre(self, id, nombre) -> str:
         return f"{id}-{'UNKNOWN' if nombre == '' else nombre}"
 
-    def salida(self, grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso, nombreEstaciones_nombreFormateados, hora_salida):
+    def salida(self, grafo, mapa_estaciones, nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida, nombreFormateado_estacionLlegada, peso, nombreEstaciones_nombreFormateados, hora_salida, subscripcion):
         self.aniadirNombreEstacion_estacionFormateada(nombreEstaciones_nombreFormateados, nombre_estacionSalida, nombreFormateado_estacionSalida)
         contiene_llave = mp.contains(mapa_estaciones, nombreFormateado_estacionSalida)
     
@@ -474,10 +580,10 @@ class Viaje:
         # CONTINUA REQUERIMIENTO 6
         if contiene_llave:
             estacion = me.getValue(mp.get(mapa_estaciones, nombreFormateado_estacionSalida))
-            estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso, hora_salida)
+            estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso, hora_salida, subscripcion)
         else:
             estacion = Estacion(nombreFormateado_estacionSalida, nombre_estacionSalida, id_estacionSalida)
-            estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso, hora_salida)
+            estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso, hora_salida, subscripcion)
             mp.put(mapa_estaciones, nombreFormateado_estacionSalida, estacion)
             gr.insertVertex(grafo, nombreFormateado_estacionSalida)
 
@@ -700,7 +806,6 @@ class Viaje:
 
         totalViajesRealizados = 0
         totalTiempoViajes = 0
-        print(lt.size(valores))
         for dia in lt.iterator(valores):
             totalViajesRealizados += lt.getElement(dia, 1)
             totalTiempoViajes += lt.getElement(dia, 2)
@@ -781,6 +886,21 @@ class Viaje:
 
 
                 
+# =========================
+# Funciones para consola
+# =========================
+def clearConsole():
+    command = 'clear'
+    if os.name in ('nt', 'dos'):  # If Machine is running on Windows, use cls
+        command = 'cls'
+    os.system(command)
+
+def exitProgram():
+    os._exit(1)
+
+
+
+
 
 
 
