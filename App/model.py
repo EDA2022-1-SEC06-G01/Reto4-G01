@@ -280,6 +280,7 @@ class Estacion:
 
     cantidad_estaciones = 0
     top_estacionesSalida = lt.newList(datastructure='ARRAY_LIST')
+    mapa_reqBono = mp.newMap()
 
     def __init__(self, nombre_formateado, nombre, id_estacion) -> None:
         self.nombre = nombre
@@ -290,6 +291,9 @@ class Estacion:
         lt.addLast(self.estacion_numSalida, 0)
         lt.addLast(self.estacion_numSalida, self.nombre_formatedo)
         lt.addLast(Estacion.top_estacionesSalida, self.estacion_numSalida)
+        
+        self.mayor_duracion_promedio_viaje = -1
+        self.estacion_terminaron = mp.newMap(numelements=29, maptype='PROBING', loadfactor=0.5)
 
         self.estacion_llegada = 0
         self.estacion_salida = 0
@@ -301,10 +305,15 @@ class Estacion:
 
         Estacion.cantidad_estaciones += 1
     
+    def mayor_duracion(self, duracion):
+        if self.mayor_duracion_promedio_viaje < int(duracion):
+            self.mayor_duracion_promedio_viaje = int(duracion)
+    
     def aniadir_llegada(self) -> None:
         self.estacion_llegada += 1
     
     def aniadir_salida(self, nombreFormateado_estacionLlegada, peso_de_estacion, hora, subscripcion):
+        self.mayor_duracion(peso_de_estacion)
         self.registrar_hora(hora)
         self.registrar_anio(hora)
         self.estacion_salida += 1
@@ -356,6 +365,50 @@ class Estacion:
             mp.put(mapa, anio, val + 1)
         else:
             mp.put(mapa, anio, 1)
+    
+    def registrar_estacion_terminaron(self, estacion):
+        mapa = self.estacion_terminaron
+        existe = mp.contains(mapa, estacion)
+        if existe:
+            val = me.getValue(mp.get(mapa, estacion))
+            mp.put(mapa, estacion, val + 1)
+        else:
+            mp.put(mapa, estacion, 1)
+    
+    # Requerimiento bono
+    def hallar_estacion_donde_llegaron_mayor_cantidad_de_viajes(self):
+        mapa = self.estacion_terminaron
+        keys = mp.keySet(mapa)
+        maximo = -1 
+        for _ in lt.iterator(keys):
+            value = me.getValue(mp.get(mapa, _))
+            if value > maximo:
+                maximo = value
+        return maximo
+    
+    def total_viajes_queIniciaronYTerminaronEnRango(self, estacion, fechaInicial, fechaFinal):
+        mapa = Estacion.mapa_reqBono
+        fechaInicial = datetime.datetime.strptime(fechaInicial, '%m/%d/%Y %H')
+        fechaFinal = datetime.datetime.strptime(fechaFinal, '%m/%d/%Y %H')
+        mapa = me.getValue(mp.get(mapa, estacion))
+        valores = om.values(mapa, fechaInicial, fechaFinal)
+
+        respuesta = lt.newList(datastructure='ARRAY_LIST')
+        lt.addLast(respuesta, 0)
+        lt.addLast(respuesta, 0)
+        for _ in lt.iterator(valores):
+            current_value1 = lt.getElement(respuesta, 1)
+            current_value2 = lt.getElement(respuesta, 2)
+            value_inicia = lt.getElement(_, 1)
+            value_termina = lt.getElement(_, 2)
+            lt.changeInfo(respuesta, current_value1 + value_inicia)
+            lt.changeInfo(respuesta, current_value2 + value_termina)
+
+        return respuesta
+
+    def respuesta_reqBono(self, estacion, fechaInicial, fechaFinal):
+        max_IniciaTermina = self.total_viajes_queIniciaronYTerminaronEnRango(estacion, fechaInicial, fechaFinal)
+        return (self.mayor_duracion_promedio_viaje, self.hallar_estacion_donde_llegaron_mayor_cantidad_de_viajes, max_IniciaTermina)
 
 
     
@@ -491,6 +544,8 @@ class Viaje:
         
         if route["User Type"] == "Annual Member":
             self.aniadirFecha_arbol(catalog, route, self.nombreFormateado_estacionSalida, self.nombreFormateado_estacionLlegada)
+        else:
+            Viaje.requerimiento_bono_iniciaron(route)
 
         # Datos bicicleta
         id = route["Bike Id"]
@@ -506,7 +561,6 @@ class Viaje:
             bicicleta.aniadir_estacionFinalizacion(self.nombreFormateado_estacionLlegada)
             mp.put(idBicicleta_objetoBicicleta, id, bicicleta)
         Bicicleta.sort
-
 
         mapa_estaciones = catalog['estaciones']
         nombreEstaciones_nombreFormateados = catalog['nombreEstaciones_nombreFormateados']
@@ -537,10 +591,6 @@ class Viaje:
         self.aniadirNombreEstacion_estacionFormateada(nombreEstaciones_nombreFormateados, nombre_estacionSalida, nombreFormateado_estacionSalida)
         contiene_llave = mp.contains(mapa_estaciones, nombreFormateado_estacionSalida)
     
-
-
-
-        # CONTINUA REQUERIMIENTO 6
         if contiene_llave:
             estacion = me.getValue(mp.get(mapa_estaciones, nombreFormateado_estacionSalida))
             estacion.aniadir_salida(nombreFormateado_estacionLlegada, peso, hora_salida, subscripcion)
@@ -846,7 +896,53 @@ class Viaje:
 
         return (totalViajesRealizados, totalTiempoViajes, lt.getElement(estacionDeOrigenMasFrecuentada, 1), lt.getElement(estacionDeOrigenMasFrecuentada, 2), lt.getElement(estacionDeDestinoMasFrecuentada, 1), lt.getElement(estacionDeDestinoMasFrecuentada, 2), lt.getElement(horaDiaMasViajesInician, 1), lt.getElement(horaDiaMasViajesTerminan, 1))
 
+    def requerimiento_bono_iniciaron(route):
+        mapa = Estacion.mapa_reqBono
+        date = route["Start Time Hora"]
+        endDate = route["End Time Hora"]
+        existe = mp.contains(mapa, route["Start Station Name"])
+        existe2 = mp.contains(mapa, route["End Station Name"])
+        if not existe:
+            new_orderMap = om.newMap(omaptype="RBT", comparefunction=compare_generalArboles)
+            lst = lt.newList(datastructure="ARRAY_LIST")
+            lt.addLast(lst, 1)
+            lt.addLast(lst, 0)
+            om.put(new_orderMap, date, lst)
+            mp.put(mapa, route["Start Station Name"], new_orderMap)
+        if not existe2:
+            new_orderMap = om.newMap(omaptype="RBT", comparefunction=compare_generalArboles)
+            lst = lt.newList(datastructure="ARRAY_LIST")
+            lt.addLast(lst, 0)
+            lt.addLast(lst, 1)
+            om.put(new_orderMap, endDate, lst)
+            mp.put(mapa, route["End Station Name"], new_orderMap)
+            
+        valueStart = me.getValue(mp.get(mapa, route["Start Station Name"])) 
+        mapa_om1 = om.contains(valueStart, date)      
+        if mapa_om1:
+            lst = me.getValue(om.get(valueStart, date))
+            
+            lt.changeInfo(lst, 1, lt.getElement(lst, 1) + 1)
+        else:
+            lst = lt.newList(datastructure="ARRAY_LIST")
+            lt.addLast(lst, 0)
+            lt.addLast(lst, 1)
+            om.put(valueStart, date, lst)
 
+        valueEnd = me.getValue(mp.get(mapa, route["End Station Name"]))   
+        mapa_om1 = om.contains(valueEnd, endDate)      
+        if mapa_om1:
+            lst = me.getValue(om.get(valueEnd, endDate))
+            
+            lt.changeInfo(lst, 1, lt.getElement(lst, 1) + 1)
+        else:
+            lst = lt.newList(datastructure="ARRAY_LIST")
+            lt.addLast(lst, 0)
+            lt.addLast(lst, 1)
+            om.put(valueEnd, endDate, lst)       
+
+        
+#=========================
 
                 
 # =========================

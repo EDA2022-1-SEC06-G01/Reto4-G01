@@ -107,14 +107,24 @@ def printRequerimiento2(routes, size, estacion_origen, maxDuration, numMinStopsS
         for i in lt.iterator(routes):
                 path = i[1]
                 stop_stations = lt.size(i[1]) + 1
+                info = {}
+                w = []
+                i = []
+                f = []
                 for station in lt.iterator(path):
                     weight = station[0]
                     initial_station = station[1]
                     finish_station = station[2]
+                    w.append(weight)
+                    i.append(initial_station)
+                    f.append(finish_station)
+                    info["weight"] = round(sum(w),2)
+                    info["initial_station"] = i
+                    info["finish_station"] = f
                 table.add_row([stop_stations,
-                                weight,
-                                initial_station,
-                                finish_station])
+                                info["weight"],
+                                info["initial_station"],
+                                info["finish_station"]])
     return print(table.get_string())
 
 def print_req3(catalog, respuesta):
@@ -268,6 +278,14 @@ def print_req4(estacion_inicio, estacion_final, costo, path):
         print()
         contador += 1
     
+def print_req7(respuesta):
+    inicia = lt.getElement(respuesta[2], 1)
+    termina = lt.getElement(respuesta[2], 2)
+    print(f"El total de viajes que iniciaron en dicha estación en el rango de tiempo solicitado: {inicia}")
+    print(f"El total de viajes que terminaron en dicha estación en el rango de tiempo solicitado: {termina}")
+    print(f"El viaje de mayor duración promedio saliendo de la estación de consulta: {respuesta[0]}")
+    print(f"La estación donde terminaron la mayoría de los viajes que iniciaron en la estación: {respuesta[1]}")
+
 
 def seleccionar_estacion(catalog, estacion):
     lst_estacion = me.getValue(mp.get(catalog['nombreEstaciones_nombreFormateados'], estacion))
@@ -338,6 +356,17 @@ while True:
         print_req6(respuesta, id_bici)
 #Sherbourne St / Wellesley St E
 
+    elif int(inputs[0]) == 7:
+        nombre_estacion = input("Nombre de la estación: ")
+        nombre_estacion = seleccionar_estacion(catalog, nombre_estacion)
+        obj = me.getValue(mp.get(catalog['estaciones'], nombre_estacion))
+        fecha_inicio = input("Fecha y hora de inicio: ")
+        fecha_final = input("Fecha y hora de finalización: ")
+        respuesta = controller.req_bono(obj, nombre_estacion, fecha_inicio, fecha_final)
+        print(respuesta)
+
+        
+        print_req7(respuesta)
     # Condicional para seleccionar la opcion 8 (Cargar información en el catálogo)
     elif int(inputs[0]) == 8:
         # avance carga datos

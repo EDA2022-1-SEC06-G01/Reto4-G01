@@ -84,6 +84,8 @@ def loadRoutes(catalog, routesFile):
                 lt.removeFirst(last_five)
             ruta['Start Time Parcial'] = datetime.datetime.strptime(ruta['Start Time'][0:10], '%m/%d/%Y')
             ruta['End Time Parcial'] = datetime.datetime.strptime(ruta['End Time'][0:10], '%m/%d/%Y')
+            ruta['Start Time Hora'] = datetime.datetime.strptime(ruta['Start Time'][0:13], '%m/%d/%Y %H')
+            ruta['End Time Hora'] = datetime.datetime.strptime(ruta['End Time'][0:13], '%m/%d/%Y %H')
             ruta['Start Time'] = datetime.datetime.strptime(ruta['Start Time'], '%m/%d/%Y %H:%M')
             ruta['End Time'] = datetime.datetime.strptime(ruta['End Time'], '%m/%d/%Y %H:%M')
             model.Viaje(catalog, ruta)
@@ -141,6 +143,7 @@ def requerimiento6(catalog, id_bici):
 def requerimiento_2(catalog, initialVertex, maxDuration, numMinStopStations, maxStations):
     return model.posibles_rutas_de_viaje(catalog, initialVertex, maxDuration, numMinStopStations, maxStations)
 
+
 # djikstra
 
 def minimumCostPaths(catalog, initialStation):
@@ -154,6 +157,9 @@ def minimumCostPath(catalog, destStation):
 
 def req4(catalog, estacion_inicial, estacion_final):
     return model.req4(catalog, estacion_inicial, estacion_final)
+
+def req_bono(obj, estacion, fechaInicial, fechaFinal):
+    return model.Estacion.respuesta_reqBono(obj, estacion, fechaInicial, fechaFinal)
 
 # Inicialización del Catálogo de libros
 
